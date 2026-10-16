@@ -1,0 +1,49 @@
+{% from "partials/_ui.html" import stars, confetti, mascot, star_count_oob %}
+{{ star_count_oob(stats.total_stars) }}
+{% set band_label, band_icon = result.band %}
+{% if result.stars == 3 %}{{ confetti() }}{% endif %}
+
+<article class="card passage passage--result">
+  <div class="passage__meta">
+    <span class="badge badge--sky">Үр дүн</span>
+    <span class="legend"><i class="tok tok--correct">зөв</i><i class="tok tok--close">ойролцоо</i><i class="tok tok--wrong">буруу</i><i class="tok tok--missed">алгассан</i></span>
+  </div>
+  <p class="passage__text">
+    {%- for t in result.alignment.tokens %}
+    <span class="tok tok--{{ t.status }}" {% if t.heard %}title="Сонсогдсон: {{ t.heard }}"{% endif %}>{{ t.text }}</span>
+    {%- endfor %}
+  </p>
+  <details class="transcript">
+    <summary>Оюу юу сонссон бэ? ({{ transcript.provider }})</summary>
+    <p>{{ transcript.text or "…" }}</p>
+  </details>
+</article>
+
+<aside class="card side result">
+  <div class="result__cheer">
+    {{ mascot(84, "bob") }}
+    <p>{{ result.cheer }}</p>
+  </div>
+  {{ stars(result.stars, "lg") }}
+
+  <div class="gauge" style="--p: {{ result.gauge }}">
+    <svg viewBox="0 0 120 70" aria-hidden="true">
+      <path class="gauge__track" d="M10 62 A50 50 0 0 1 110 62" pathLength="100"/>
+      <path class="gauge__fill" d="M10 62 A50 50 0 0 1 110 62" pathLength="100"/>
+    </svg>
+    <div class="gauge__value"><b>{{ result.wpm | round | int }}</b><small>үг/мин</small></div>
+  </div>
+  <span class="pill pill--sky pill--lg">{{ band_icon }} {{ band_label }}</span>
+
+  <dl class="facts">
+    <div><dt>🎯 Нарийвчлал</dt><dd>{{ result.accuracy | pct }}</dd></div>
+    <div><dt>✅ Зөв уншсан</dt><dd>{{ result.alignment.correct }}/{{ result.alignment.total }}</dd></div>
+    <div><dt>⏱️ Хугацаа</dt><dd>{{ result.duration_seconds | mmss }}</dd></div>
+    <div><dt>🙈 Алгассан</dt><dd>{{ result.alignment.count('missed') }}</dd></div>
+  </dl>
+
+  <div class="result__actions">
+    <a href="/reading/{{ passage.id }}" class="btn btn--sky">🔁 Дахин унших</a>
+    <a href="/reading" class="btn btn--ghost">Өөр эх сонгох</a>
+  </div>
+</aside>

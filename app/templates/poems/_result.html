@@ -1,0 +1,44 @@
+{% from "partials/_ui.html" import stars, confetti, mascot, star_count_oob %}
+{{ star_count_oob(stats.total_stars) }}
+{% set active = "recite" %}
+{% include "poems/_tabs.html" %}
+{% if result.stars == 3 %}{{ confetti() }}{% endif %}
+
+<div class="stage">
+  <article class="card poem">
+    <header class="poem__head">
+      <h2>{{ poem.title }}</h2>
+      <span class="legend"><i class="tok tok--correct">зөв</i><i class="tok tok--close">ойролцоо</i><i class="tok tok--wrong">буруу</i><i class="tok tok--missed">мартсан</i></span>
+    </header>
+    <div class="poem__lines">
+      {% for tokens, acc in result.lines %}
+      <p class="poem__line poem__line--scored" style="--i: {{ loop.index0 }}">
+        <span class="line-score {{ 'is-good' if acc >= 0.8 else 'is-bad' if acc < 0.5 }}">{{ acc | pct }}</span>
+        {%- for t in tokens %}
+        <span class="tok tok--{{ t.status }}" {% if t.heard %}title="Сонсогдсон: {{ t.heard }}"{% endif %}>{{ t.text }}</span>
+        {%- endfor %}
+      </p>
+      {% endfor %}
+    </div>
+    <details class="transcript">
+      <summary>Оюу юу сонссон бэ? ({{ transcript.provider }})</summary>
+      <p>{{ transcript.text or "…" }}</p>
+    </details>
+  </article>
+
+  <aside class="card side result">
+    <div class="result__cheer">
+      {{ mascot(84, "bob") }}
+      <p>{{ result.cheer }}</p>
+    </div>
+    {{ stars(result.stars, "lg") }}
+    <dl class="facts">
+      <div><dt>🎯 Нарийвчлал</dt><dd>{{ result.accuracy | pct }}</dd></div>
+      <div><dt>✅ Санасан үг</dt><dd>{{ result.alignment.correct }}/{{ result.alignment.total }}</dd></div>
+    </dl>
+    <div class="result__actions">
+      <button type="button" class="btn btn--coral" hx-get="/poems/{{ poem.id }}/recite" hx-target="#poem-stage" hx-swap="innerHTML">🔁 Дахин хэлэх</button>
+      <button type="button" class="btn btn--ghost" hx-get="/poems/{{ poem.id }}/practice?level=2" hx-target="#poem-stage" hx-swap="innerHTML">🙉 Дасгал хийх</button>
+    </div>
+  </aside>
+</div>

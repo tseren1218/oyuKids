@@ -1,0 +1,19 @@
+{# Shown for `round.display_seconds`, then htmx automatically loads the recall step. #}
+<section class="card flash" style="--secs: {{ round.display_seconds }}s">
+  <div class="flash__head">
+    <span class="badge badge--grape">{{ level.icon }} {{ level.label }}</span>
+    <h2>Анхааралтай хар! 👀</h2>
+    <span class="flash__count">{{ round.words | length }} үг</span>
+  </div>
+  <div class="countdown"><span></span></div>
+
+  <ol class="word-grid">
+    {% for w in round.words %}
+    <li class="word-card word-card--{{ loop.index0 % 5 }}" style="--i: {{ loop.index0 }}">
+      <small>{{ loop.index }}</small>{{ w }}
+    </li>
+    {% endfor %}
+  </ol>
+
+  <div hx-get="/words/rounds/{{ round.id }}/recall" hx-trigger="load delay:{{ round.display_seconds }}s" hx-target="#words-stage" hx-swap="innerHTML"></div>
+</section>

@@ -1,0 +1,14 @@
+{% from "partials/_ui.html" import recorder, mascot %}
+{% set active = "recite" %}
+{% include "poems/_tabs.html" %}
+
+<section class="card recite">
+  <div class="recite__intro">
+    {{ mascot(96, "bob") }}
+    <div>
+      <h2>«{{ poem.title }}» шүлгээ цээжээр хэлээрэй</h2>
+      <p class="muted">{{ poem.lines | length }} мөр. Эхний үг: <b>{{ poem.lines[0].split()[0] }}…</b></p>
+    </div>
+  </div>
+  {{ recorder("/poems/" ~ poem.id ~ "/attempts", "#poem-stage", demo_seconds=poem.word_count, prompt="Товчийг дараад шүлгээ уншаарай", color="coral") }}
+</section>

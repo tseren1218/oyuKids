@@ -1,0 +1,75 @@
+{% from "partials/_ui.html" import mascot %}
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}oyuKids{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/js/htmx.min.js"></script>
+  <script src="/static/js/recorder.js" defer></script>
+</head>
+<body hx-boost="true">
+  <div class="backdrop" aria-hidden="true">
+    <span class="blob blob--sun"></span>
+    <span class="blob blob--sky"></span>
+    <span class="blob blob--grape"></span>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar">
+      <a href="/" class="brand">
+        {{ mascot(44) }}
+        <span class="brand__name">oyu<b>Kids</b></span>
+      </a>
+
+      <nav class="nav" aria-label="Үндсэн цэс">
+        {% for item in nav %}
+        <a href="{{ item.href }}" class="nav__item nav__item--{{ item.color }} {{ 'is-active' if item.is_active(path) }}">
+          <span class="nav__icon">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+
+      <div class="nav__heading">Удахгүй</div>
+      <nav class="nav nav--more" aria-label="Бусад цэс">
+        {% for item in more %}
+        <a href="/soon/{{ item.slug }}" class="nav__item nav__item--muted {{ 'is-active' if path == '/soon/' ~ item.slug }}">
+          <span class="nav__icon">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+          <span class="nav__lock">🔒</span>
+        </a>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar__title">{% block heading %}{% endblock %}</div>
+        <div class="topbar__chips">
+          <span class="chip chip--sun" title="Цуглуулсан од">⭐ <b id="star-count">{{ stats.total_stars }}</b></span>
+          <span class="chip chip--coral" title="Дараалсан өдөр">🔥 <b>{{ kid.streak_days }}</b> өдөр</span>
+          <span class="avatar" title="{{ kid.name }}">{{ kid.avatar }}</span>
+        </div>
+      </header>
+
+      <div class="page">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <nav class="tabbar" aria-label="Цэс">
+    {% for item in nav %}
+    <a href="{{ item.href }}" class="tabbar__item tabbar__item--{{ item.color }} {{ 'is-active' if item.is_active(path) }}">
+      <span>{{ item.icon }}</span><small>{{ item.label.split(' ')[0] }}</small>
+    </a>
+    {% endfor %}
+  </nav>
+</body>
+</html>

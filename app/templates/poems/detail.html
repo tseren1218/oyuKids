@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ poem.title }} · oyuKids{% endblock %}
+{% block heading %}<a href="/poems" class="back">←</a> {{ poem.emoji }} {{ poem.title }}{% endblock %}
+
+{% block content %}
+<div id="poem-stage">
+  {% include "poems/_practice.html" %}
+</div>
+{% endblock %}

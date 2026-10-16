@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import recorder %}
+{% block title %}{{ passage.title }} · oyuKids{% endblock %}
+{% block heading %}<a href="/reading" class="back">←</a> {{ passage.emoji }} {{ passage.title }}{% endblock %}
+
+{% block content %}
+<div id="reading-stage" class="stage">
+  <article class="card passage">
+    <div class="passage__meta">
+      <span class="badge badge--sky">{{ category_labels[passage.category] }}</span>
+      <span class="muted">{{ passage.word_count }} үг</span>
+      {% if passage.source %}<span class="muted">· {{ passage.source }}</span>{% endif %}
+    </div>
+    <p class="passage__text">{{ passage.body }}</p>
+  </article>
+
+  <aside class="card side">
+    <h2>Бэлэн үү? 🎙️</h2>
+    {{ recorder("/reading/" ~ passage.id ~ "/attempts", "#reading-stage", demo_seconds=passage.estimated_seconds(70), color="sky") }}
+    <ul class="tips">
+      <li>🗣️ Тод, чангаар уншаарай</li>
+      <li>🐢 Яарах хэрэггүй — зөв унших нь чухал</li>
+      <li>⏹️ Дуусмагц товчийг дахин дар</li>
+    </ul>
+  </aside>
+</div>
+{% endblock %}

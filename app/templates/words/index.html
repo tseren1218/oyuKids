@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import mascot %}
+{% block title %}Холбоо үг · oyuKids{% endblock %}
+{% block heading %}🧠 Холбоо үг цээжлэх{% endblock %}
+
+{% block content %}
+<div id="words-stage">
+  <section class="intro intro--grape">
+    <div>
+      <h1>Харсан үгсээ санаж чадах уу?</h1>
+      <p>Холбоо үгс хэдхэн секунд гарч ирээд алга болно. Дараа нь санаснаа дарааллаар нь чангаар хэлээрэй!</p>
+    </div>
+    {{ mascot(110, "bob") }}
+  </section>
+
+  <form class="card level-form" hx-post="/words/rounds" hx-target="#words-stage" hx-swap="innerHTML">
+    <h2 class="section-title">Түвшнээ сонго</h2>
+    <div class="levels">
+      {% for lvl in levels %}
+      <label class="level-card level-card--{{ loop.index }}">
+        <input type="radio" name="level" value="{{ lvl.key }}" {{ 'checked' if lvl.key == selected }}>
+        <span class="level-card__icon">{{ lvl.icon }}</span>
+        <strong>{{ lvl.label }}</strong>
+        <small>{{ lvl.count }} холбоо үг · {{ lvl.seconds }} секунд</small>
+      </label>
+      {% endfor %}
+    </div>
+    <button class="btn btn--grape btn--lg" type="submit">Эхлэх 👀</button>
+  </form>
+</div>
+{% endblock %}

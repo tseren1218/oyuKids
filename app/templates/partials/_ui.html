@@ -1,0 +1,88 @@
+{# Shared UI macros. Import with: {% from "partials/_ui.html" import mascot, stars, recorder, confetti %} #}
+
+{% macro mascot(size=120, cls="") -%}
+<svg class="mascot {{ cls }}" width="{{ size }}" height="{{ size }}" viewBox="0 0 120 120" role="img" aria-label="Оюу шар шувуу">
+  <ellipse cx="60" cy="114" rx="30" ry="4" fill="#2B2350" opacity=".1"/>
+  <path d="M30 42 L22 12 L46 30 Z" fill="#0F9488"/>
+  <path d="M90 42 L98 12 L74 30 Z" fill="#0F9488"/>
+  <ellipse cx="22" cy="72" rx="9" ry="20" fill="#0F9488" transform="rotate(14 22 72)"/>
+  <ellipse cx="98" cy="72" rx="9" ry="20" fill="#0F9488" transform="rotate(-14 98 72)"/>
+  <ellipse cx="60" cy="66" rx="40" ry="44" fill="#14B8A6"/>
+  <ellipse cx="60" cy="80" rx="26" ry="27" fill="#99F6E4"/>
+  <path d="M45 80 q4 4 8 0 M56 80 q4 4 8 0 M67 80 q4 4 8 0 M50.5 90 q4 4 8 0 M61.5 90 q4 4 8 0" stroke="#5EEAD4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <g class="mascot__eyes">
+    <circle cx="44" cy="50" r="15" fill="#fff"/>
+    <circle cx="76" cy="50" r="15" fill="#fff"/>
+    <circle cx="46" cy="52" r="7.5" fill="#2B2350"/>
+    <circle cx="78" cy="52" r="7.5" fill="#2B2350"/>
+    <circle cx="48.5" cy="49" r="2.6" fill="#fff"/>
+    <circle cx="80.5" cy="49" r="2.6" fill="#fff"/>
+  </g>
+  <path d="M54 62 L66 62 L60 71 Z" fill="#FFB020" stroke="#E8970A" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="31" cy="64" r="5" fill="#FF7A93" opacity=".85"/>
+  <circle cx="89" cy="64" r="5" fill="#FF7A93" opacity=".85"/>
+  <path d="M50 108 l-4 5 M50 108 v6 M50 108 l4 5 M70 108 l-4 5 M70 108 v6 M70 108 l4 5" stroke="#FFB020" stroke-width="3" stroke-linecap="round"/>
+</svg>
+{%- endmacro %}
+
+{# After an attempt, refreshes the ⭐ total in the top bar (htmx out-of-band swap). #}
+{% macro star_count_oob(total) -%}
+<b id="star-count" hx-swap-oob="true">{{ total }}</b>
+{%- endmacro %}
+
+{% macro stars(n, size="md") -%}
+<span class="stars stars--{{ size }}" aria-label="{{ n }} од">
+  {%- for i in range(3) %}<span class="star {{ 'is-on' if i < n }}" style="--i: {{ i }}">★</span>{% endfor -%}
+</span>
+{%- endmacro %}
+
+{% macro confetti(count=28) -%}
+<div class="confetti" aria-hidden="true">
+  {%- for i in range(count) %}
+  <span style="--x: {{ (i * 37) % 100 }}%; --delay: {{ (i * 7) % 10 / 20 }}s; --spin: {{ (i * 53) % 360 }}deg; --c: var(--{{ ['sun', 'coral', 'sky', 'mint', 'grape'][i % 5] }})"></span>
+  {%- endfor %}
+</div>
+{%- endmacro %}
+
+{#
+  Microphone recorder. recorder.js records audio, POSTs `audio` + `duration_ms` (+ any hidden
+  inputs inside) to `upload_url`, and swaps the HTML response into `target`.
+  The "demo" button submits without a mic so the mock STT can be tried anywhere.
+#}
+{% macro recorder(upload_url, target, demo_seconds=15, prompt="Товчийг дараад чангаар уншаарай", color="coral") -%}
+<div class="recorder recorder--{{ color }}" data-recorder data-upload-url="{{ upload_url }}" data-target="{{ target }}" data-demo-seconds="{{ demo_seconds }}">
+  <canvas class="recorder__viz" width="300" height="64" aria-hidden="true"></canvas>
+  <button type="button" class="mic-btn" data-rec-btn aria-label="Бичлэг эхлүүлэх / зогсоох">
+    <span class="mic-btn__ring"></span>
+    <svg class="mic-btn__icon mic-btn__icon--mic" viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path fill="currentColor" d="M12 15a4 4 0 0 0 4-4V6a4 4 0 1 0-8 0v5a4 4 0 0 0 4 4Zm7-4a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V20H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.08A7 7 0 0 0 19 11Z"/></svg>
+    <svg class="mic-btn__icon mic-btn__icon--stop" viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3" fill="currentColor"/></svg>
+  </button>
+  <div class="recorder__timer" data-rec-timer>00:00</div>
+  <p class="recorder__status" data-rec-status>{{ prompt }}</p>
+  <button type="button" class="link-btn" data-rec-demo>🎭 Микрофонгүй туршиж үзэх</button>
+</div>
+{%- endmacro %}
+
+{% macro attempt_list(attempts) -%}
+{% if attempts %}
+<ul class="attempts">
+  {% for a in attempts %}
+  {% set meta = activities[a.activity] %}
+  <li class="attempt">
+    <span class="tile tile--{{ meta.color }}">{{ meta.icon }}</span>
+    <div class="attempt__body">
+      <strong>{{ a.item_title }}</strong>
+      <small>{{ meta.label }} · {{ a.created_at | shortdate }}</small>
+    </div>
+    <div class="attempt__meta">
+      {% if a.wpm %}<span class="pill pill--sky">{{ a.wpm | round | int }} үг/мин</span>{% endif %}
+      <span class="pill">{{ a.score | pct }}</span>
+      {{ stars(a.stars, "sm") }}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">Одоохондоо дасгал хийгээгүй байна. Эхний дасгалаа эхлүүлээрэй! 🚀</p>
+{% endif %}
+{%- endmacro %}

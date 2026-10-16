@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import mascot %}
+{% block title %}{{ item.label }} · oyuKids{% endblock %}
+{% block heading %}{{ item.icon }} {{ item.label }}{% endblock %}
+
+{% block content %}
+<section class="card soon-page soon--{{ item.color }}">
+  {{ mascot(150, "bob") }}
+  <h1>Тун удахгүй!</h1>
+  <p>«{{ item.label }}» — {{ item.blurb | lower }}. Оюу энэ хэсгийг одоо бэлдэж байна 🛠️</p>
+  <a href="/" class="btn btn--sun">Нүүр хуудас руу буцах</a>
+</section>
+{% endblock %}

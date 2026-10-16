@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Хурдан уншлага · oyuKids{% endblock %}
+{% block heading %}📖 Хурдан уншлага{% endblock %}
+
+{% block content %}
+<section class="intro intro--sky">
+  <div>
+    <h1>Чи минутад хэдэн үг уншдаг вэ?</h1>
+    <p>Эх сонгоод, микрофоны товчийг дараад чангаар уншаарай. Оюу таны уншсан үгсийг шалгаж, хурдыг тань хэмжинэ.</p>
+  </div>
+  <ol class="steps">
+    <li><span>1</span>Эх сонгох</li>
+    <li><span>2</span>Чангаар унших</li>
+    <li><span>3</span>Од авах ⭐</li>
+  </ol>
+</section>
+
+{% include "reading/_passage_list.html" %}
+{% endblock %}

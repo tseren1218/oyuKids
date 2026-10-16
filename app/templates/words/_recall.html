@@ -1,0 +1,16 @@
+{% from "partials/_ui.html" import recorder %}
+<section class="card flash flash--recall">
+  <div class="flash__head">
+    <span class="badge badge--grape">{{ level.icon }} {{ level.label }}</span>
+    <h2>Одоо санаснаа хэлээрэй! 🗣️</h2>
+    <span class="flash__count">{{ round.words | length }} үг</span>
+  </div>
+
+  <ol class="word-grid">
+    {% for w in round.words %}
+    <li class="word-card word-card--hidden" style="--i: {{ loop.index0 }}"><small>{{ loop.index }}</small>?</li>
+    {% endfor %}
+  </ol>
+
+  {{ recorder("/words/rounds/" ~ round.id ~ "/attempts", "#words-stage", demo_seconds=round.words | length * 2, prompt="Товчийг дараад үгсийг дарааллаар нь хэлээрэй", color="grape") }}
+</section>

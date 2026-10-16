@@ -1,0 +1,30 @@
+<div id="passage-list">
+  <div class="chips" role="tablist">
+    {% for key, label, icon in categories %}
+    {% set url = "/reading" ~ ("?category=" ~ key if key else "") %}
+    <a href="{{ url }}" hx-get="{{ url }}" hx-target="#passage-list" hx-swap="outerHTML" hx-push-url="true"
+       class="chip-btn {{ 'is-active' if key == category }}" role="tab" aria-selected="{{ 'true' if key == category else 'false' }}">
+      {{ icon }} {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="cards">
+    {% for p in passages %}
+    <a href="/reading/{{ p.id }}" class="item-card" style="--i: {{ loop.index0 }}">
+      <span class="item-card__emoji">{{ p.emoji }}</span>
+      <div class="item-card__body">
+        <span class="badge badge--sky">{{ category_labels[p.category] }}</span>
+        <h3>{{ p.title }}</h3>
+        <p>{{ p.body | truncate(80) }}</p>
+      </div>
+      <div class="item-card__meta">
+        <span class="level" aria-label="Түвшин {{ p.level }}">{% for i in range(3) %}<i class="{{ 'is-on' if i < p.level }}"></i>{% endfor %}</span>
+        <small>{{ p.word_count }} үг · ~{{ p.estimated_seconds() | mmss }}</small>
+      </div>
+    </a>
+    {% else %}
+    <p class="empty">Энэ ангилалд эх алга байна.</p>
+    {% endfor %}
+  </div>
+</div>

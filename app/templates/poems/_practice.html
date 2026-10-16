@@ -1,0 +1,37 @@
+{% set active = level %}
+{% include "poems/_tabs.html" %}
+
+<article class="card poem">
+  <header class="poem__head">
+    <h2>{{ poem.title }}</h2>
+    <span class="muted">{{ poem.author }}</span>
+  </header>
+
+  <div class="poem__lines">
+    {% for line in lines %}
+    <p class="poem__line" style="--i: {{ loop.index0 }}">
+      {%- for w in line %}
+      {% if w.hidden -%}
+      <button type="button" class="mask" onclick="this.classList.toggle('is-peek')" aria-label="Үгийг харах">
+        <span class="mask__hint">{{ w.hint }}…</span><span class="mask__word">{{ w.text }}</span>
+      </button>
+      {%- else -%}
+      <span>{{ w.text }}</span>
+      {%- endif %}
+      {%- endfor %}
+    </p>
+    {% endfor %}
+  </div>
+
+  <footer class="poem__foot">
+    {% if level == 0 %}
+    <p class="muted">💡 Шүлгээ 2–3 удаа чангаар уншаад дараагийн шат руу ороорой.</p>
+    {% else %}
+    <p class="muted">💡 Нуугдсан үгийг санахгүй бол дээр нь дараад хар.</p>
+    <button type="button" class="btn btn--ghost btn--sm"
+            hx-get="/poems/{{ poem.id }}/practice?level={{ level }}&seed={{ seed + 1 }}" hx-target="#poem-stage" hx-swap="innerHTML">
+      🔀 Өөр үгс нуух
+    </button>
+    {% endif %}
+  </footer>
+</article>

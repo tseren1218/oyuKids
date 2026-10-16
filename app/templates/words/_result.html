@@ -1,0 +1,42 @@
+{% from "partials/_ui.html" import stars, confetti, mascot, star_count_oob %}
+{{ star_count_oob(stats.total_stars) }}
+{% if result.stars == 3 %}{{ confetti() }}{% endif %}
+<section class="card flash">
+  <div class="result__cheer result__cheer--row">
+    {{ mascot(84, "bob") }}
+    <div>
+      <p>{{ result.cheer }}</p>
+      {{ stars(result.stars, "lg") }}
+    </div>
+  </div>
+
+  <dl class="facts facts--row">
+    <div><dt>✅ Санасан</dt><dd>{{ result.recalled }}/{{ result.total }}</dd></div>
+    <div><dt>🤏 Хагас</dt><dd>{{ result.partial }}</dd></div>
+    <div><dt>🔢 Дарааллаар</dt><dd>{{ result.in_order }}/{{ result.total }}</dd></div>
+    <div><dt>🎯 Оноо</dt><dd>{{ result.score | pct }}</dd></div>
+  </dl>
+  {% if result.perfect_order %}<p class="pill pill--mint pill--lg">🏅 Бүх үгийг зөв дарааллаар хэллээ!</p>{% endif %}
+
+  <ol class="word-grid">
+    {% for item in result.items %}
+    <li class="word-card word-card--{{ item.status }}" style="--i: {{ loop.index0 }}">
+      <small>{{ loop.index }}</small>{{ item.phrase }}
+      <em>{{ {"recalled": "✓", "partial": "½", "missed": "✗"}[item.status] }}</em>
+    </li>
+    {% endfor %}
+  </ol>
+
+  <details class="transcript">
+    <summary>Оюу юу сонссон бэ? ({{ transcript.provider }})</summary>
+    <p>{{ transcript.text or "…" }}</p>
+  </details>
+
+  <div class="result__actions">
+    <form hx-post="/words/rounds" hx-target="#words-stage" hx-swap="innerHTML">
+      <input type="hidden" name="level" value="{{ level.key }}">
+      <button class="btn btn--grape" type="submit">🔁 Дахин тоглох</button>
+    </form>
+    <a href="/words" class="btn btn--ghost">Түвшин солих</a>
+  </div>
+</section>

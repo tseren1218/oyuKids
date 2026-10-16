@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import mascot, attempt_list %}
+{% block heading %}Сайн уу, {{ kid.name }}! 👋{% endblock %}
+
+{% block content %}
+<section class="hero card">
+  <div class="hero__text">
+    <span class="eyebrow">Өнөөдрийн зорилго</span>
+    <h1>Өнөөдөр шинэ зүйл сурцгаая!</h1>
+    <p>{{ daily_goal }} төрлийн дасгал хийгээд ⭐ од цуглуулаарай.</p>
+    {% set done = [stats.activities_today, daily_goal] | min %}
+    <div class="goal">
+      <div class="goal__bar"><span style="width: {{ (done / daily_goal * 100) | round }}%"></span></div>
+      <b>{{ done }}/{{ daily_goal }}</b>
+    </div>
+    <div class="hero__actions">
+      <a class="btn btn--sun btn--lg" href="/reading">Эхлэх 🚀</a>
+      <a class="btn btn--ghost" href="/progress">Миний ахиц</a>
+    </div>
+  </div>
+  <div class="hero__art">
+    <div class="bubble">Би Оюу! Хамтдаа сурцгаая 💡</div>
+    {{ mascot(170, "bob") }}
+  </div>
+</section>
+
+<h2 class="section-title">Үндсэн дасгалууд</h2>
+<section class="modules">
+  {% for m, stat in modules %}
+  <a class="module module--{{ m.color }}" href="{{ m.href }}" style="--i: {{ loop.index0 }}">
+    <span class="module__icon">{{ m.icon }}</span>
+    <h3>{{ m.label }}</h3>
+    <p>{{ m.blurb }}</p>
+    <div class="module__foot">
+      <span class="module__stat">{{ stat }}</span>
+      <span class="module__go" aria-hidden="true">→</span>
+    </div>
+  </a>
+  {% endfor %}
+</section>
+
+<div class="split">
+  <section class="card">
+    <div class="card__head">
+      <h2 class="section-title">Сүүлийн дасгалууд</h2>
+      <a href="/progress" class="link">Бүгдийг харах →</a>
+    </div>
+    {{ attempt_list(recent) }}
+  </section>
+
+  <section class="card">
+    <h2 class="section-title">Удахгүй нэмэгдэнэ</h2>
+    <div class="soon-grid">
+      {% for s in soon %}
+      <a href="/soon/{{ s.slug }}" class="soon soon--{{ s.color }}">
+        <span class="soon__icon">{{ s.icon }}</span>
+        <strong>{{ s.label }}</strong>
+        <small>{{ s.blurb }}</small>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
