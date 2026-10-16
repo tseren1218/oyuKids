@@ -5,7 +5,7 @@ services:
     name: oyukids
     runtime: python
     region: singapore          # closest to the S3 bucket (ap-southeast-1) and Mongolia
-    plan: starter              # free plan sleeps after 15 min idle (~1 min cold start)
+    plan: free              # free plan sleeps after 15 min idle (~1 min cold start)
     branch: main
     buildCommand: pip install ".[singlestore]"
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
