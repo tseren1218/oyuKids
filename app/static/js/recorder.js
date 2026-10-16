@@ -12,7 +12,42 @@
   const pickMimeType = () =>
     (window.MediaRecorder && MIME_TYPES.find((m) => MediaRecorder.isTypeSupported(m))) || "";
 
-  const extFor = (mime) => (mime.includes("mp4") ? ".m4a" : mime.includes("ogg") ? ".ogg" : ".webm");
+  const extFor = (mime) => (mime.includes("wav") ? ".wav" : mime.includes("mp4") ? ".m4a" : mime.includes("ogg") ? ".ogg" : ".webm");
+
+  // Recordings are stored as training data, so they go up as 16 kHz mono 16-bit PCM WAV —
+  // the usual speech-corpus format, and accepted by the STT. Decoding/resampling uses Web Audio.
+  const WAV_RATE = 16000;
+
+  async function toWav(blob) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    let decoded;
+    try {
+      decoded = await ctx.decodeAudioData(await blob.arrayBuffer());
+    } finally {
+      ctx.close();
+    }
+    const offline = new OfflineAudioContext(1, Math.max(1, Math.ceil(decoded.duration * WAV_RATE)), WAV_RATE);
+    const source = offline.createBufferSource();
+    source.buffer = decoded;
+    source.connect(offline.destination); // mono destination → channels are down-mixed
+    source.start();
+    return encodeWav((await offline.startRendering()).getChannelData(0), WAV_RATE);
+  }
+
+  function encodeWav(samples, rate) {
+    const view = new DataView(new ArrayBuffer(44 + samples.length * 2));
+    const text = (offset, str) => [...str].forEach((ch, i) => view.setUint8(offset + i, ch.charCodeAt(0)));
+    text(0, "RIFF"); view.setUint32(4, 36 + samples.length * 2, true); text(8, "WAVE");
+    text(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+    view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+    text(36, "data"); view.setUint32(40, samples.length * 2, true);
+    for (let i = 0; i < samples.length; i++) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    }
+    return new Blob([view], { type: "audio/wav" });
+  }
 
   const formatMs = (ms) => {
     const s = Math.floor(ms / 1000);
@@ -122,6 +157,13 @@
     async function upload(blob, durationMs) {
       setBusy(true);
       setStatus("Оюу шалгаж байна… 🦉");
+      if (blob.size) {
+        try {
+          blob = await toWav(blob);
+        } catch (err) {
+          console.warn("WAV conversion failed; sending the original recording", err);
+        }
+      }
       const body = new FormData();
       body.append("audio", blob, "recording" + extFor(blob.type));
       body.append("duration_ms", String(Math.round(durationMs)));

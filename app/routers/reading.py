@@ -3,11 +3,13 @@ from fastapi.responses import HTMLResponse
 
 from app.auth import student_required
 from app.db.base import Repository
-from app.deps import get_repo, get_stt
+from app.deps import get_audio_store, get_repo, get_stt
 from app.models import Attempt, User
 from app.services.classroom import assignment_for_student
 from app.services.scoring import score_reading
-from app.services.stt import STTProvider, transcribe_upload
+from app.services.recording import process_recording
+from app.services.storage import AudioStore
+from app.services.stt import STTProvider
 from app.web import or_404, render, wants_fragment
 
 router = APIRouter(prefix="/reading", tags=["reading"])
@@ -58,10 +60,12 @@ async def submit(
     user: User = Depends(student_required),
     repo: Repository = Depends(get_repo),
     stt: STTProvider = Depends(get_stt),
+    store: AudioStore = Depends(get_audio_store),
 ):
     passage = or_404(repo.get_passage(passage_id))
     task = assignment_for_student(repo, user, assignment_id, "reading", str(passage.id))
-    transcript = await transcribe_upload(stt, audio, hint=passage.body)
+    recording = await process_recording(audio, stt=stt, store=store, hint=passage.body, activity="reading", student_id=user.id)
+    transcript = recording.transcript
     duration = transcript.duration_seconds or duration_ms / 1000
     result = score_reading(passage.body, transcript.text, duration)
     repo.save_attempt(
@@ -76,6 +80,7 @@ async def submit(
             stars=result.stars,
             wpm=result.wpm,
             assignment_id=task and task.id,
+            audio_url=recording.audio_url,
         )
     )
     return render(request, "reading/_result.html", passage=passage, result=result, transcript=transcript, task=task)

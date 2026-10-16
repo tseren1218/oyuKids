@@ -15,7 +15,7 @@ from app.models import Assignment, Attempt, Classroom, Membership, Passage, Poem
 USER_COLS = "id, role, username, name, avatar, grade, streak_days"
 CLASSROOM_COLS = "id, teacher_id, name, grade, emoji, join_code, created_at"
 ASSIGNMENT_COLS = "id, classroom_id, activity, item_id, title, due_date, instructions, created_at"
-ATTEMPT_COLS = "id, kid_id AS student_id, activity, item_id, item_title, transcript, duration_ms, score, stars, wpm, details, assignment_id, created_at"
+ATTEMPT_COLS = "id, kid_id AS student_id, activity, item_id, item_title, transcript, duration_ms, score, stars, wpm, details, assignment_id, audio_url, created_at"
 
 
 def _json(value):
@@ -180,6 +180,10 @@ class SingleStoreRepository:
         )
         return word_round
 
+    def get_attempt(self, attempt_id: int) -> Attempt | None:
+        row = self._one(f"SELECT {ATTEMPT_COLS} FROM attempts WHERE id = %s", (attempt_id,))
+        return Attempt(**{**row, "details": _json(row["details"]) or {}}) if row else None
+
     def get_word_round(self, round_id: str) -> WordRound | None:
         row = self._one(
             "SELECT id, kid_id AS student_id, level, words, display_seconds, assignment_id, created_at FROM word_rounds WHERE id = %s", (round_id,)
@@ -188,12 +192,12 @@ class SingleStoreRepository:
 
     def save_attempt(self, attempt: Attempt) -> Attempt:
         attempt.id = self._insert(
-            "INSERT INTO attempts (kid_id, activity, item_id, item_title, transcript, duration_ms, score, stars, wpm, details, assignment_id, created_at)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO attempts (kid_id, activity, item_id, item_title, transcript, duration_ms, score, stars, wpm, details,"
+            " assignment_id, audio_url, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (
                 attempt.student_id, attempt.activity, attempt.item_id, attempt.item_title, attempt.transcript,
                 attempt.duration_ms, attempt.score, attempt.stars, attempt.wpm,
-                json.dumps(attempt.details, ensure_ascii=False), attempt.assignment_id, attempt.created_at,
+                json.dumps(attempt.details, ensure_ascii=False), attempt.assignment_id, attempt.audio_url, attempt.created_at,
             ),
         )
         return attempt

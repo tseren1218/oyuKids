@@ -6,11 +6,13 @@ from fastapi.responses import HTMLResponse
 
 from app.auth import student_required
 from app.db.base import Repository
-from app.deps import get_repo, get_stt
+from app.deps import get_audio_store, get_repo, get_stt
 from app.models import Attempt, User
 from app.services.classroom import assignment_for_student
 from app.services.scoring import score_words
-from app.services.stt import STTProvider, transcribe_upload
+from app.services.recording import process_recording
+from app.services.storage import AudioStore
+from app.services.stt import STTProvider
 from app.web import or_404, render
 
 router = APIRouter(prefix="/words", tags=["words"])
@@ -73,11 +75,13 @@ async def submit(
     user: User = Depends(student_required),
     repo: Repository = Depends(get_repo),
     stt: STTProvider = Depends(get_stt),
+    store: AudioStore = Depends(get_audio_store),
 ):
     word_round = _own_round(repo, round_id, user)
     task = assignment_for_student(repo, user, word_round.assignment_id, "words", word_round.level)
     level = LEVELS[word_round.level]
-    transcript = await transcribe_upload(stt, audio, hint=" ".join(word_round.words))
+    recording = await process_recording(audio, stt=stt, store=store, hint=" ".join(word_round.words), activity="words", student_id=user.id)
+    transcript = recording.transcript
     result = score_words(word_round.words, transcript.text)
     repo.save_attempt(
         Attempt(
@@ -91,6 +95,7 @@ async def submit(
             stars=result.stars,
             details={"recalled": result.recalled, "partial": result.partial, "total": result.total, "in_order": result.in_order},
             assignment_id=task and task.id,
+            audio_url=recording.audio_url,
         )
     )
     return render(request, "words/_result.html", round=word_round, level=level, result=result, transcript=transcript, task=task)

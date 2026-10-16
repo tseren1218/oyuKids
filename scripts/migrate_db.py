@@ -3,7 +3,7 @@
 Never drops tables and never modifies existing rows. Safe to run repeatedly:
 
   1. creates users / classrooms / memberships / assignments (if missing)
-  2. adds a nullable `assignment_id` to attempts and word_rounds (if missing)
+  2. adds nullable columns (if missing): attempts/word_rounds.assignment_id, attempts.audio_url
   3. copies every row of the legacy `kids` table into `users` as a student with the
      same id (so all attempt history stays linked), with a Latin login name
   4. adds the demo teachers, and — only if no classrooms exist yet — one classroom per
@@ -88,11 +88,14 @@ def main() -> None:
             run(f"create table {table}", statements[table])
 
     # 2. new nullable columns
-    for table in ("attempts", "word_rounds"):
-        if table in tables and "assignment_id" not in columns(table):
-            run(f"add column {table}.assignment_id", f"ALTER TABLE {table} ADD COLUMN assignment_id BIGINT NULL")
-        elif table not in tables:
+    new_columns = [("attempts", "assignment_id", "BIGINT NULL"), ("word_rounds", "assignment_id", "BIGINT NULL"),
+                   ("attempts", "audio_url", "VARCHAR(1024) NULL")]
+    for table, column, ddl in new_columns:
+        if table not in tables:
             run(f"create table {table}", statements[table])
+            tables.add(table)
+        elif column not in columns(table):
+            run(f"add column {table}.{column}", f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
 
     users = {r["id"]: r for r in q("SELECT id, username FROM users")} if "users" in tables else {}
     taken = {u["username"] for u in users.values()}

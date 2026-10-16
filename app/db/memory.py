@@ -102,6 +102,9 @@ class MemoryRepository:
         self._rounds[word_round.id] = word_round
         return word_round
 
+    def get_attempt(self, attempt_id: int) -> Attempt | None:
+        return next((a for a in self._attempts if a.id == attempt_id), None)
+
     def get_word_round(self, round_id: str) -> WordRound | None:
         return self._rounds.get(round_id)
 

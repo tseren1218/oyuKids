@@ -3,6 +3,7 @@ from functools import lru_cache
 from app.config import get_settings
 from app.db.base import Repository
 from app.db.memory import MemoryRepository
+from app.services.storage import AudioStore, build_audio_store
 from app.services.stt import STTProvider, build_stt
 
 
@@ -19,3 +20,8 @@ def get_repo() -> Repository:
 @lru_cache
 def get_stt() -> STTProvider:
     return build_stt(get_settings())
+
+
+@lru_cache
+def get_audio_store() -> AudioStore:
+    return build_audio_store(get_settings())

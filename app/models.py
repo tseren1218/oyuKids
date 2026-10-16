@@ -121,6 +121,7 @@ class Attempt:
     wpm: float | None = None
     details: dict = field(default_factory=dict)
     assignment_id: int | None = None
+    audio_url: str | None = None  # s3://bucket/recordings/... (WAV) — lakehouse / oyuLLM training data
     id: int | None = None
     created_at: datetime = field(default_factory=datetime.now)
 

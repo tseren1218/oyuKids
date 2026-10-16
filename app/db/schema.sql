@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS attempts (
     wpm            DOUBLE       NULL,
     details        JSON         NULL,
     assignment_id  BIGINT       NULL,
+    audio_url      VARCHAR(1024) NULL,         -- s3://… WAV of the child's recording
     created_at     DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     KEY (kid_id),
     KEY (assignment_id),

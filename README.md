@@ -87,6 +87,28 @@ OYU_STT_API_KEY=sk-...        # https://oyu.so/account/apikeys
 - The 🎭 demo button (empty clip) always uses the mock, even when oyu is enabled. STT failures → HTTP 502 → retry message.
 - `python -m scripts.try_oyu` runs a TTS → STT round trip over the seed content and prints accuracy.
 
+## Recordings → S3 (training data)
+
+Every real recording (not the 🎭 demo button) is stored as **16 kHz mono 16-bit PCM WAV** and its
+location saved in `attempts.audio_url`, for the lakehouse / oyuLLM:
+
+- The browser converts the MediaRecorder clip to WAV (`recorder.js:toWav`, Web Audio); the same WAV
+  goes to Anir and to S3. If conversion fails the original format is stored instead.
+- Upload runs concurrently with STT (`services/recording.py`), signed with SigV4 over httpx
+  (`services/storage.py`, verified against AWS's published test vector), SSE-S3 encrypted, retried
+  on network errors. A storage failure never fails the attempt — `audio_url` stays NULL and it is logged.
+- Keys are Hive-partitioned: `s3://oyu-kids-bucket/recordings/activity=reading/date=2026-10-16/student=12/<uuid>.wav`.
+  Join with `attempts` (transcript, score, wpm, item) via `audio_url`.
+- Teachers can play recordings on the assignment page through a 15-minute presigned link
+  (`/teacher/attempts/{id}/audio`, scoped to their own students). The bucket stays private.
+
+```
+AWS_ACCESS_KEY_ID=…  AWS_SECRET_ACCESS_KEY=…  AWS_REGION=ap-southeast-1  S3_BUCKET_NAME=oyu-kids-bucket
+```
+
+The IAM user needs `s3:PutObject` + `s3:GetObject` (and optionally `s3:DeleteObject`) on
+`arn:aws:s3:::oyu-kids-bucket/recordings/*`.
+
 ## SingleStore
 
 ```

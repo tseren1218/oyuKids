@@ -7,10 +7,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.auth import teacher_required
 from app.db.base import Repository
-from app.deps import get_repo
+from app.deps import get_audio_store, get_repo
 from app.models import Classroom, User
 from app.navigation import ACTIVITIES
 from app.services.classroom import CLASSROOM_EMOJIS, TeacherScope, item_options, item_title, new_join_code
+from app.services.storage import AudioStore
 from app.web import or_404, render, wants_fragment
 
 router = APIRouter(prefix="/teacher", tags=["teacher"], dependencies=[Depends(teacher_required)])
@@ -206,3 +207,18 @@ def assignment(request: Request, assignment_id: int, user: User = Depends(teache
         for sid in sorted(progress.roster, key=lambda s: (s not in progress.best, scope.students[s].name))
     ]
     return render(request, "teacher/assignment.html", p=progress, rows=rows)
+
+
+@router.get("/attempts/{attempt_id}/audio")
+def attempt_audio(
+    attempt_id: int,
+    user: User = Depends(teacher_required),
+    repo: Repository = Depends(get_repo),
+    store: AudioStore = Depends(get_audio_store),
+):
+    """Play a student's recording: short-lived presigned S3 link, only for the student's own teachers."""
+    attempt = or_404(repo.get_attempt(attempt_id))
+    my_classes = [c.id for c in repo.list_classrooms(teacher_id=user.id)]
+    or_404(repo.list_memberships(classroom_ids=my_classes, student_id=attempt.student_id) or None)
+    url = or_404(store.playback_url(attempt.audio_url) if attempt.audio_url else None)
+    return RedirectResponse(url, status_code=307)

@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from typing import Protocol
 
 import httpx
-from fastapi import UploadFile
 
 from app.config import Settings
 
@@ -106,13 +105,3 @@ def build_stt(settings: Settings) -> STTProvider:
         return OyuSTT(settings.oyu_api_url, settings.stt_api_key, settings.stt_model)
     return MockSTT()
 
-
-_demo_stt = MockSTT()
-
-
-async def transcribe_upload(stt: STTProvider, upload: UploadFile | None, *, hint: str | None = None) -> Transcript:
-    audio = await upload.read() if upload else b""
-    mime_type = (upload.content_type if upload else None) or "audio/webm"
-    if not audio:  # the no-mic "demo" button posts an empty clip — always simulate it
-        stt = _demo_stt
-    return await stt.transcribe(audio, mime_type, hint=hint)

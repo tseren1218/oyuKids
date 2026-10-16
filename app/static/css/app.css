@@ -630,6 +630,8 @@ td .pbar { width: 80px; }
 .ring b { font-size: 1.5rem; line-height: 1; }
 .ring small { color: var(--muted); }
 .facts--compact { width: auto; grid-template-columns: repeat(2, minmax(120px, auto)); }
+.rec-cell { min-width: 220px; }
+.rec { display: block; width: 220px; height: 34px; margin-bottom: 4px; }
 .peek summary { cursor: pointer; color: var(--grape); font-weight: 800; }
 .peek p { margin: 6px 0 0; max-width: 320px; font-weight: 600; font-size: .85rem; color: var(--ink-2); }
 .bars--sm { height: 160px; margin-top: 6px; }

@@ -3,12 +3,14 @@ from fastapi.responses import HTMLResponse
 
 from app.auth import student_required
 from app.db.base import Repository
-from app.deps import get_repo, get_stt
+from app.deps import get_audio_store, get_repo, get_stt
 from app.models import Attempt, User
 from app.services.classroom import assignment_for_student
 from app.services.practice import LEVELS, mask_lines
 from app.services.scoring import score_poem
-from app.services.stt import STTProvider, transcribe_upload
+from app.services.recording import process_recording
+from app.services.storage import AudioStore
+from app.services.stt import STTProvider
 from app.web import or_404, render
 
 router = APIRouter(prefix="/poems", tags=["poems"])
@@ -60,10 +62,12 @@ async def submit(
     user: User = Depends(student_required),
     repo: Repository = Depends(get_repo),
     stt: STTProvider = Depends(get_stt),
+    store: AudioStore = Depends(get_audio_store),
 ):
     poem = or_404(repo.get_poem(poem_id))
     task = assignment_for_student(repo, user, assignment_id, "poems", str(poem.id))
-    transcript = await transcribe_upload(stt, audio, hint=poem.body)
+    recording = await process_recording(audio, stt=stt, store=store, hint=poem.body, activity="poems", student_id=user.id)
+    transcript = recording.transcript
     result = score_poem(poem.body, transcript.text)
     repo.save_attempt(
         Attempt(
@@ -76,6 +80,7 @@ async def submit(
             score=result.accuracy,
             stars=result.stars,
             assignment_id=task and task.id,
+            audio_url=recording.audio_url,
         )
     )
     return render(request, "poems/_result.html", poem=poem, levels=LEVELS, result=result, transcript=transcript, task=task)
