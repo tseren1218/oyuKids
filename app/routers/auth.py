@@ -33,7 +33,8 @@ def login(
             error="Ийм хэрэглэгч олдсонгүй. Доорх туршилтын хэрэглэгчээс сонгоорой.",
         )
     response = RedirectResponse(home_for(user), status_code=303)
-    response.set_cookie(COOKIE, session_cookie(user.id), httponly=True, samesite="lax", max_age=60 * 60 * 24 * 30)
+    response.set_cookie(COOKIE, session_cookie(user.id), httponly=True, samesite="lax", max_age=60 * 60 * 24 * 30,
+                        secure=request.url.scheme == "https")
     return response
 
 

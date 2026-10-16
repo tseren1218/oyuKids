@@ -1,0 +1,36 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Dashboard → New → Blueprint → pick this repo. Secrets marked `sync: false` are asked for once.
+services:
+  - type: web
+    name: oyukids
+    runtime: python
+    region: singapore          # closest to the S3 bucket (ap-southeast-1) and Mongolia
+    plan: starter              # free plan sleeps after 15 min idle (~1 min cold start)
+    branch: main
+    buildCommand: pip install ".[singlestore]"
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: OYU_DEBUG
+        value: "false"
+      - key: OYU_SESSION_SECRET      # signs login cookies — must not be the dev default
+        generateValue: true
+      - key: OYU_DB_BACKEND
+        value: singlestore
+      - key: OYU_STT_PROVIDER
+        value: oyu
+      - key: AWS_REGION
+        value: ap-southeast-1
+      - key: S3_BUCKET_NAME
+        value: oyu-kids-bucket
+      # secrets — entered in the dashboard, never committed
+      - key: OYU_SINGLESTORE_URL
+        sync: false
+      - key: OYU_STT_API_KEY
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false

@@ -16,5 +16,11 @@ dependencies = [
 singlestore = ["singlestoredb>=1.7"]
 dev = ["pytest>=8", "httpx>=0.27"]
 
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+app = ["templates/**/*.html", "static/**/*", "db/*.sql"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

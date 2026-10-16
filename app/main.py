@@ -20,6 +20,11 @@ def create_app() -> FastAPI:
     for module in (auth, pages, classes, reading, words, poems, teacher):
         app.include_router(module.router)
     app.add_exception_handler(LoginRequired, on_login_required)
+
+    @app.get("/healthz", include_in_schema=False)
+    def healthz():
+        return {"ok": True}
+
     app.add_exception_handler(WrongRole, on_wrong_role)
 
     @app.exception_handler(STTError)
