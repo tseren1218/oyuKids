@@ -32,6 +32,9 @@ def test_words_round_flow(student):
     assert student.get(f"/words/rounds/{round_id}/recall").status_code == 200
     result = student.post(f"/words/rounds/{round_id}/attempts", data={"duration_ms": "8000"})
     assert result.status_code == 200 and "Санасан" in result.text
+    from app.deps import get_repo
+    saved = get_repo().list_attempts(student_ids=[1], activity="words", limit=1)[0]
+    assert saved.details["round_id"] == round_id and len(saved.details["words"]) == 5
 
 
 def test_word_rounds_are_private(student, login):

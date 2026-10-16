@@ -93,7 +93,10 @@ async def submit(
             duration_ms=duration_ms,
             score=result.score,
             stars=result.stars,
-            details={"recalled": result.recalled, "partial": result.partial, "total": result.total, "in_order": result.in_order},
+            details={
+                "recalled": result.recalled, "partial": result.partial, "total": result.total, "in_order": result.in_order,
+                "round_id": word_round.id, "words": word_round.words,  # the reference text for this recording
+            },
             assignment_id=task and task.id,
             audio_url=recording.audio_url,
         )

@@ -116,7 +116,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .eyebrow { display: inline-block; font-size: .8rem; text-transform: uppercase; letter-spacing: .12em; color: var(--turq-d); font-weight: 900; margin-bottom: 6px; }
 .empty { color: var(--muted); padding: 16px 0; }
 .split { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; margin-top: 24px; }
-.split .section-title { margin-top: 0; }
+.split .section-title:first-child { margin-top: 0; }  /* only a block's leading heading hugs the top */
 .split > *, .stage > * { min-width: 0; }  /* let tables scroll / text truncate instead of widening the grid */
 .feed, .prows, .tasks, .attempts { grid-template-columns: minmax(0, 1fr); }  /* same for rows inside grid lists */
 .card { container-type: inline-size; }  /* rows below adapt to their card, not the viewport */
