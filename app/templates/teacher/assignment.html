@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import stars %}
+{% from "teacher/_macros.html" import score_badge %}
+{% set a = p.assignment %}
+{% set meta = activities[a.activity] %}
+{% block title %}{{ a.title }} · oyuKids{% endblock %}
+{% block heading %}<a href="/teacher/classrooms/{{ p.classroom.id }}?tab=assignments" class="back">←</a> {{ meta.icon }} {{ a.title }}{% endblock %}
+
+{% block content %}
+<section class="class-hero card">
+  <div class="ring" style="--p: {{ p.pct }}"><b>{{ p.completed }}/{{ p.roster | length }}</b><small>хийсэн</small></div>
+  <div class="class-hero__info">
+    <span class="badge badge--{{ meta.color }}">{{ meta.label }}</span>
+    <h1>{{ a.title }}</h1>
+    <p class="muted">{{ p.classroom.emoji }} {{ p.classroom.name }} · ⏰ {{ a.due_date | due }} ({{ a.due_date | mmdd }})</p>
+    {% if a.instructions %}<p class="instructions">💬 {{ a.instructions }}</p>{% endif %}
+  </div>
+  <dl class="facts facts--compact">
+    <div><dt>🎯 Дундаж</dt><dd>{{ p.avg_score | pct if p.avg_score is not none else "—" }}</dd></div>
+    {% set wpms = p.best.values() | selectattr("wpm") | map(attribute="wpm") | list %}
+    {% if a.activity == "reading" %}<div><dt>⚡ Дундаж WPM</dt><dd>{{ (wpms | sum / wpms | length) | round | int if wpms else "—" }}</dd></div>{% endif %}
+  </dl>
+</section>
+
+<section class="card">
+  <h2 class="section-title">Сурагчдын үр дүн</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Сурагч</th><th>Төлөв</th><th>Шилдэг оноо</th><th>⭐</th>{% if a.activity == "reading" %}<th>WPM</th>{% endif %}<th>Оролдлого</th><th>Илгээсэн</th><th>Юу хэлсэн</th></tr></thead>
+      <tbody>
+        {% for s, best, tries in rows %}
+        <tr>
+          <td><a href="/teacher/students/{{ s.id }}" class="who"><span class="avatar avatar--sm">{{ s.avatar }}</span><strong>{{ s.name }}</strong></a></td>
+          {% if best %}
+          <td><span class="pill pill--mint">✅ Хийсэн</span></td>
+          <td>{{ score_badge(best) }}</td>
+          <td>{{ stars(best.stars, "sm") }}</td>
+          {% if a.activity == "reading" %}<td>{{ best.wpm | round | int if best.wpm else "—" }}</td>{% endif %}
+          <td>{{ tries }}</td>
+          <td><small>{{ best.created_at | shortdate }}</small></td>
+          <td>{% if best.transcript %}<details class="peek"><summary>Харах</summary><p>{{ best.transcript }}</p></details>{% else %}<small class="muted">—</small>{% endif %}</td>
+          {% else %}
+          <td colspan="{{ 7 if a.activity == 'reading' else 6 }}">
+            {% if a.overdue %}<span class="score score--late">Хугацаа хэтэрсэн</span>{% else %}<span class="pill">⏳ Хүлээгдэж байна</span>{% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty">Энэ ангид сурагч алга.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

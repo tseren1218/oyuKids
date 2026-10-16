@@ -49,8 +49,9 @@
   inputs inside) to `upload_url`, and swaps the HTML response into `target`.
   The "demo" button submits without a mic so the mock STT can be tried anywhere.
 #}
-{% macro recorder(upload_url, target, demo_seconds=15, prompt="Товчийг дараад чангаар уншаарай", color="coral") -%}
+{% macro recorder(upload_url, target, demo_seconds=15, prompt="Товчийг дараад чангаар уншаарай", color="coral", task=None) -%}
 <div class="recorder recorder--{{ color }}" data-recorder data-upload-url="{{ upload_url }}" data-target="{{ target }}" data-demo-seconds="{{ demo_seconds }}">
+  {% if task %}<input type="hidden" name="assignment_id" value="{{ task.id }}">{% endif %}
   <canvas class="recorder__viz" width="300" height="64" aria-hidden="true"></canvas>
   <button type="button" class="mic-btn" data-rec-btn aria-label="Бичлэг эхлүүлэх / зогсоох">
     <span class="mic-btn__ring"></span>
@@ -84,5 +85,53 @@
 </ul>
 {% else %}
 <p class="empty">Одоохондоо дасгал хийгээгүй байна. Эхний дасгалаа эхлүүлээрэй! 🚀</p>
+{% endif %}
+{%- endmacro %}
+
+
+{% macro progress_bar(pct, color="mint") -%}
+<span class="pbar pbar--{{ color }}"><span style="width: {{ (pct * 100) | round }}%"></span></span>
+{%- endmacro %}
+
+{# Student-facing list of assignments (StudentTask objects). #}
+{% macro task_list(tasks) -%}
+<ul class="tasks">
+  {% for t in tasks %}
+  {% set a = t.assignment %}
+  {% set meta = activities[a.activity] %}
+  <li class="task {{ 'is-done' if t.done }} {{ 'is-overdue' if a.overdue and not t.done }}">
+    <span class="tile tile--{{ meta.color }}">{{ meta.icon }}</span>
+    <div class="task__body">
+      <strong>{{ a.title }}</strong>
+      <small>{{ t.classroom.emoji }} {{ t.classroom.name }} · {{ meta.label }}</small>
+    </div>
+    {% if t.done %}
+      <span class="pill pill--mint">✅ {{ t.best.score | pct }}</span>
+      {{ stars(t.best.stars, "sm") }}
+      <a href="{{ t.url }}" class="btn btn--ghost btn--sm">Дахин</a>
+    {% else %}
+      <span class="due {{ 'due--late' if a.overdue else 'due--soon' if a.days_left <= 1 }}">⏰ {{ a.due_date | due }}</span>
+      <a href="{{ t.url }}" class="btn btn--{{ meta.color }} btn--sm">Эхлэх →</a>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{%- endmacro %}
+
+{# Shown on an activity page when the student opened it from an assignment. #}
+{% macro task_banner(task) -%}
+{% if task %}
+<div class="task-banner">
+  <span>📋</span>
+  <div><strong>Багшийн даалгавар: {{ task.title }}</strong>{% if task.instructions %}<small>{{ task.instructions }}</small>{% endif %}</div>
+  <span class="due {{ 'due--late' if task.overdue }}">⏰ {{ task.due_date | due }}</span>
+</div>
+{% endif %}
+{%- endmacro %}
+
+{# Shown on a result when the attempt counted toward an assignment. #}
+{% macro task_done(task) -%}
+{% if task %}
+<p class="alert alert--ok">✅ Даалгавар илгээгдлээ: {{ task.title }}. Багш тань үр дүнг харах болно. <a href="/classes" class="link">Даалгаврууд →</a></p>
 {% endif %}
 {%- endmacro %}

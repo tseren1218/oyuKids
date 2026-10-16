@@ -1,9 +1,10 @@
 {% extends "base.html" %}
-{% from "partials/_ui.html" import recorder %}
+{% from "partials/_ui.html" import recorder, task_banner %}
 {% block title %}{{ passage.title }} · oyuKids{% endblock %}
 {% block heading %}<a href="/reading" class="back">←</a> {{ passage.emoji }} {{ passage.title }}{% endblock %}
 
 {% block content %}
+{{ task_banner(task) }}
 <div id="reading-stage" class="stage">
   <article class="card passage">
     <div class="passage__meta">
@@ -16,7 +17,7 @@
 
   <aside class="card side">
     <h2>Бэлэн үү? 🎙️</h2>
-    {{ recorder("/reading/" ~ passage.id ~ "/attempts", "#reading-stage", demo_seconds=passage.estimated_seconds(70), color="sky") }}
+    {{ recorder("/reading/" ~ passage.id ~ "/attempts", "#reading-stage", demo_seconds=passage.estimated_seconds(70), color="sky", task=task) }}
     <ul class="tips">
       <li>🗣️ Тод, чангаар уншаарай</li>
       <li>🐢 Яарах хэрэггүй — зөв унших нь чухал</li>

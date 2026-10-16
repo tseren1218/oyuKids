@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Ангиуд · oyuKids{% endblock %}
+{% block heading %}🏫 Ангиуд{% endblock %}
+
+{% block content %}
+<div class="split split--wide-left">
+  <section>
+    <div class="class-grid class-grid--lg">
+      {% for c in scope.classrooms %}
+      {% set roster = scope.roster(c.id) %}
+      {% set plist = scope.progress_list(c.id) %}
+      <a href="/teacher/classrooms/{{ c.id }}" class="class-card class-card--link class-card--tall" style="--i: {{ loop.index0 }}">
+        <div class="class-card__top">
+          <span class="class-card__emoji">{{ c.emoji }}</span>
+          <code class="code-chip" title="Нэгдэх код">🔑 {{ c.join_code }}</code>
+        </div>
+        <h3>{{ c.name }}</h3>
+        <small>{{ c.grade }}-р анги</small>
+        <div class="class-card__stats">
+          <span><b>{{ roster | length }}</b> сурагч</span>
+          <span><b>{{ plist | length }}</b> даалгавар</span>
+          <span><b>{{ scope.roster(c.id, "invited") | length }}</b> урилга</span>
+        </div>
+      </a>
+      {% else %}
+      <p class="empty card">Анги алга байна. Баруун талаас анхны ангиа үүсгээрэй →</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <aside class="card">
+    <h2>➕ Шинэ анги</h2>
+    {% if error %}<p class="alert alert--bad">{{ error }}</p>{% endif %}
+    <form method="post" action="/teacher/classrooms" class="aform">
+      <label class="field"><span>Ангийн нэр</span><input name="name" maxlength="60" placeholder="жишээ нь: 3В анги" required></label>
+      <label class="field"><span>Анги (түвшин)</span>
+        <select name="grade">{% for g in range(1, 13) %}<option value="{{ g }}" {{ 'selected' if g == 3 }}>{{ g }}-р анги</option>{% endfor %}</select>
+      </label>
+      <div class="field">
+        <span>Тэмдэг</span>
+        <div class="emoji-pick">
+          {% for e in emojis %}
+          <label><input type="radio" name="emoji" value="{{ e }}" {{ 'checked' if loop.first }}><span>{{ e }}</span></label>
+          {% endfor %}
+        </div>
+      </div>
+      <button class="btn btn--sky btn--block" type="submit">Анги үүсгэх</button>
+    </form>
+  </aside>
+</div>
+{% endblock %}

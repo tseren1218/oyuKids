@@ -1,8 +1,17 @@
 {% extends "base.html" %}
-{% from "partials/_ui.html" import mascot, attempt_list %}
-{% block heading %}Сайн уу, {{ kid.name }}! 👋{% endblock %}
+{% from "partials/_ui.html" import mascot, attempt_list, task_list %}
+{% block heading %}Сайн уу, {{ user.name }}! 👋{% endblock %}
 
 {% block content %}
+{% for c in scope.invitations %}
+<div class="invite-banner">
+  <span class="invite-banner__emoji">{{ c.emoji }}</span>
+  <div><strong>{{ scope.teacher_of[c.id].name }} таныг «{{ c.name }}» ангид урьж байна!</strong><small>Нэгдвэл багшийн даалгаврууд энд харагдана.</small></div>
+  <form method="post" action="/classes/{{ c.id }}/accept"><button class="btn btn--mint btn--sm">Нэгдэх ✅</button></form>
+  <form method="post" action="/classes/{{ c.id }}/decline"><button class="btn btn--ghost btn--sm">Татгалзах</button></form>
+</div>
+{% endfor %}
+
 <section class="hero card">
   <div class="hero__text">
     <span class="eyebrow">Өнөөдрийн зорилго</span>
@@ -23,6 +32,20 @@
     {{ mascot(170, "bob") }}
   </div>
 </section>
+
+{% if scope.classrooms %}
+<section class="card tasks-card">
+  <div class="card__head">
+    <h2 class="section-title">📋 Багшийн даалгавар</h2>
+    <a href="/classes" class="link">Миний анги →</a>
+  </div>
+  {% if scope.pending %}
+    {{ task_list(scope.pending[:4]) }}
+  {% else %}
+    <p class="empty">🎉 Бүх даалгавраа хийчихжээ! Гайхалтай!</p>
+  {% endif %}
+</section>
+{% endif %}
 
 <h2 class="section-title">Үндсэн дасгалууд</h2>
 <section class="modules">

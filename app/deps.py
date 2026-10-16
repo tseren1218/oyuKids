@@ -5,9 +5,6 @@ from app.db.base import Repository
 from app.db.memory import MemoryRepository
 from app.services.stt import STTProvider, build_stt
 
-# No auth yet: every request acts as this kid.
-DEMO_KID_ID = 1
-
 
 @lru_cache
 def get_repo() -> Repository:

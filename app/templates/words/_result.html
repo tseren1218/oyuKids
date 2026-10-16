@@ -1,7 +1,8 @@
-{% from "partials/_ui.html" import stars, confetti, mascot, star_count_oob %}
+{% from "partials/_ui.html" import stars, confetti, mascot, star_count_oob, task_done %}
 {{ star_count_oob(stats.total_stars) }}
 {% if result.stars == 3 %}{{ confetti() }}{% endif %}
 <section class="card flash">
+  {{ task_done(task) }}
   <div class="result__cheer result__cheer--row">
     {{ mascot(84, "bob") }}
     <div>
@@ -35,6 +36,7 @@
   <div class="result__actions">
     <form hx-post="/words/rounds" hx-target="#words-stage" hx-swap="innerHTML">
       <input type="hidden" name="level" value="{{ level.key }}">
+      {% if task %}<input type="hidden" name="assignment_id" value="{{ task.id }}">{% endif %}
       <button class="btn btn--grape" type="submit">🔁 Дахин тоглох</button>
     </form>
     <a href="/words" class="btn btn--ghost">Түвшин солих</a>

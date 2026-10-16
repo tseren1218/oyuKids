@@ -9,19 +9,30 @@ class NavItem:
     icon: str
     color: str
     blurb: str = ""
+    short: str = ""  # mobile tab bar label
 
     def is_active(self, path: str) -> bool:
-        return path == "/" if self.href == "/" else path.startswith(self.href)
+        if self.href in ("/", "/teacher"):
+            return path == self.href
+        return path.startswith(self.href)
 
 
 NAV = (
-    NavItem("home", "Нүүр", "/", "🏠", "sun"),
-    NavItem("reading", "Хурдан уншлага", "/reading", "📖", "sky", "Чангаар уншаад минутад хэдэн үг уншдагаа мэдээрэй."),
-    NavItem("words", "Холбоо үг", "/words", "🧠", "grape", "Үгсийг хараад, цээжлээд, дараа нь хэлээрэй."),
-    NavItem("poems", "Шүлэг цээжлэх", "/poems", "📝", "coral", "Шүлгээ алхам алхмаар цээжлээд уншаад өгөөрэй."),
-    NavItem("progress", "Миний ахиц", "/progress", "🏆", "mint"),
+    NavItem("home", "Нүүр", "/", "🏠", "sun", short="Нүүр"),
+    NavItem("reading", "Хурдан уншлага", "/reading", "📖", "sky", "Чангаар уншаад минутад хэдэн үг уншдагаа мэдээрэй.", short="Унших"),
+    NavItem("words", "Холбоо үг", "/words", "🧠", "grape", "Үгсийг хараад, цээжлээд, дараа нь хэлээрэй.", short="Үг"),
+    NavItem("poems", "Шүлэг цээжлэх", "/poems", "📝", "coral", "Шүлгээ алхам алхмаар цээжлээд уншаад өгөөрэй.", short="Шүлэг"),
+    NavItem("classes", "Миний анги", "/classes", "🏫", "sun", short="Анги"),
+    NavItem("progress", "Миний ахиц", "/progress", "🏆", "mint", short="Ахиц"),
 )
 MODULES = NAV[1:4]
+
+TEACHER_NAV = (
+    NavItem("dashboard", "Хянах самбар", "/teacher", "📊", "sun", short="Самбар"),
+    NavItem("classrooms", "Ангиуд", "/teacher/classrooms", "🏫", "sky", short="Ангиуд"),
+    NavItem("students", "Сурагчид", "/teacher/students", "🧒", "grape", short="Сурагчид"),
+    NavItem("assignments", "Даалгавар", "/teacher/assignments", "📋", "coral", short="Даалгавар"),
+)
 
 
 @dataclass(frozen=True)

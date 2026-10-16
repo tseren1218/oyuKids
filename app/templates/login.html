@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import mascot %}
+{% block title %}Нэвтрэх · oyuKids{% endblock %}
+
+{% block body %}
+<main class="login">
+  <section class="login__art">
+    <div class="brand brand--lg">
+      {{ mascot(64) }}
+      <span class="brand__name">oyu<b>Kids</b></span>
+    </div>
+    <h1>Уншиж, цээжилж, хамтдаа өсье!</h1>
+    <p>Хурдан уншлага, холбоо үг, шүлэг цээжлэх дасгалууд — ангийнхантайгаа, багштайгаа хамт.</p>
+    <div class="login__mascot">{{ mascot(190, "bob") }}</div>
+    <ul class="login__perks">
+      <li>📖 Уншлагын хурдаа хэмж</li>
+      <li>🧠 Ой тогтоолтоо хөгжүүл</li>
+      <li>🏫 Ангидаа нэгдээд даалгавар биелүүл</li>
+    </ul>
+  </section>
+
+  <section class="login__card card">
+    <h2>Нэвтрэх</h2>
+    <form method="post" action="/login" class="login__form" hx-boost="false">
+      <div class="role-pick" role="radiogroup" aria-label="Хэн бэ?">
+        <label class="role-card role-card--student">
+          <input type="radio" name="role" value="student" {{ 'checked' if role != 'teacher' }}>
+          <span class="role-card__icon">🎒</span><strong>Сурагч</strong><small>Дасгал хийх</small>
+        </label>
+        <label class="role-card role-card--teacher">
+          <input type="radio" name="role" value="teacher" {{ 'checked' if role == 'teacher' }}>
+          <span class="role-card__icon">🍎</span><strong>Багш</strong><small>Анги удирдах</small>
+        </label>
+      </div>
+
+      {% if error %}<p class="alert alert--bad">{{ error }}</p>{% endif %}
+
+      <label class="field">
+        <span>Нэвтрэх нэр</span>
+        <input name="username" value="{{ username or '' }}" placeholder="жишээ нь: nomin" autocomplete="username" required>
+      </label>
+      <label class="field">
+        <span>Нууц үг <em>(туршилтын горимд хамаагүй)</em></span>
+        <input name="password" type="password" placeholder="••••••" autocomplete="current-password">
+      </label>
+      <button class="btn btn--sun btn--lg btn--block" type="submit">Нэвтрэх 🚀</button>
+    </form>
+
+    <div class="demo-accounts">
+      <div class="demo-accounts__head">⚡ Туршилтын хэрэглэгчид</div>
+      <div class="demo-accounts__list demo-accounts__list--student">
+        {% for u in students %}
+        <form method="post" action="/login" hx-boost="false">
+          <input type="hidden" name="role" value="student"><input type="hidden" name="username" value="{{ u.username }}">
+          <button class="demo-chip" type="submit"><span>{{ u.avatar }}</span>{{ u.name }}</button>
+        </form>
+        {% endfor %}
+      </div>
+      <div class="demo-accounts__list demo-accounts__list--teacher">
+        {% for u in teachers %}
+        <form method="post" action="/login" hx-boost="false">
+          <input type="hidden" name="role" value="teacher"><input type="hidden" name="username" value="{{ u.username }}">
+          <button class="demo-chip" type="submit"><span>{{ u.avatar }}</span>{{ u.name }}</button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

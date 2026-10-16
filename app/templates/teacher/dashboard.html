@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import mascot, stars %}
+{% from "teacher/_macros.html" import progress_row, score_badge %}
+{% block title %}Хянах самбар · oyuKids{% endblock %}
+{% block heading %}Сайн байна уу, {{ user.name }}! 👋{% endblock %}
+
+{% block content %}
+<section class="stat-grid">
+  <a href="/teacher/classrooms" class="stat stat--sky"><span>🏫</span><b>{{ scope.classrooms | length }}</b><small>Анги</small></a>
+  <a href="/teacher/students" class="stat stat--grape"><span>🧒</span><b>{{ scope.active_student_ids | length }}</b><small>Сурагч</small></a>
+  <a href="/teacher/assignments" class="stat stat--sun"><span>📋</span><b>{{ scope.open_assignments | length }}</b><small>Идэвхтэй даалгавар</small></a>
+  <div class="stat stat--mint"><span>✅</span><b>{{ scope.completion | pct }}</b><small>Даалгаврын гүйцэтгэл</small></div>
+</section>
+
+<div class="split">
+  <section class="card">
+    <div class="card__head">
+      <h2 class="section-title">⏰ Удахгүй дуусах даалгавар</h2>
+      <a href="/teacher/assignments" class="link">Бүгд →</a>
+    </div>
+    {% if upcoming %}
+    <div class="prows">{% for p in upcoming %}{{ progress_row(p) }}{% endfor %}</div>
+    {% else %}
+    <p class="empty">Идэвхтэй даалгавар алга. <a class="link" href="/teacher/assignments">Шинэ даалгавар өгөх →</a></p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2 class="section-title">📥 Сүүлийн илгээлтүүд</h2>
+    {% set subs = scope.recent_submissions(6) %}
+    {% if subs %}
+    <ul class="feed">
+      {% for a, s, asg in subs %}
+      <li>
+        <a href="/teacher/students/{{ s.id }}" class="avatar avatar--sm">{{ s.avatar }}</a>
+        <div class="feed__body">
+          <strong>{{ s.name }}</strong>
+          <small>{{ asg.title }} · {{ a.created_at | shortdate }}</small>
+        </div>
+        {% if a.wpm %}<span class="pill pill--sky">{{ a.wpm | round | int }} үг/мин</span>{% endif %}
+        {{ score_badge(a) }}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">Одоохондоо илгээлт алга.</p>
+    {% endif %}
+  </section>
+</div>
+
+<div class="split">
+  <section class="card">
+    <div class="card__head">
+      <h2 class="section-title">🏫 Миний ангиуд</h2>
+      <a href="/teacher/classrooms" class="link">+ Шинэ анги</a>
+    </div>
+    <div class="class-grid">
+      {% for c in scope.classrooms %}
+      {% set roster = scope.roster(c.id) %}
+      {% set invited = scope.roster(c.id, "invited") %}
+      <a href="/teacher/classrooms/{{ c.id }}" class="class-card class-card--link">
+        <span class="class-card__emoji">{{ c.emoji }}</span>
+        <div>
+          <h3>{{ c.name }}</h3>
+          <small>{{ roster | length }} сурагч{% if invited %} · {{ invited | length }} урилга{% endif %}</small>
+        </div>
+        <code class="code-chip">{{ c.join_code }}</code>
+      </a>
+      {% else %}
+      <p class="empty">Анги үүсгээд эхлээрэй.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="section-title">👀 Анхаарах сурагчид</h2>
+    {% set flagged = scope.needs_attention() %}
+    {% if flagged %}
+    <ul class="feed">
+      {% for s, reason in flagged %}
+      <li>
+        <a href="/teacher/students/{{ s.id }}" class="avatar avatar--sm">{{ s.avatar }}</a>
+        <div class="feed__body"><strong>{{ s.name }}</strong><small>{{ reason }}</small></div>
+        <a href="/teacher/students/{{ s.id }}" class="btn btn--ghost btn--sm">Харах</a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state empty-state--sm">{{ mascot(70) }}<p class="muted">Бүх сурагч хэвийн байна 👍</p></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

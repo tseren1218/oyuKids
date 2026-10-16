@@ -29,7 +29,7 @@
     {% else %}
     <p class="muted">💡 Нуугдсан үгийг санахгүй бол дээр нь дараад хар.</p>
     <button type="button" class="btn btn--ghost btn--sm"
-            hx-get="/poems/{{ poem.id }}/practice?level={{ level }}&seed={{ seed + 1 }}" hx-target="#poem-stage" hx-swap="innerHTML">
+            hx-get="/poems/{{ poem.id }}/practice?level={{ level }}&seed={{ seed + 1 }}{{ '&assignment=' ~ task.id if task }}" hx-target="#poem-stage" hx-swap="innerHTML">
       🔀 Өөр үгс нуух
     </button>
     {% endif %}

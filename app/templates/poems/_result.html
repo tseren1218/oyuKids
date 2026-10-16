@@ -1,9 +1,10 @@
-{% from "partials/_ui.html" import stars, confetti, mascot, star_count_oob %}
+{% from "partials/_ui.html" import stars, confetti, mascot, star_count_oob, task_done %}
 {{ star_count_oob(stats.total_stars) }}
 {% set active = "recite" %}
 {% include "poems/_tabs.html" %}
 {% if result.stars == 3 %}{{ confetti() }}{% endif %}
 
+{{ task_done(task) }}
 <div class="stage">
   <article class="card poem">
     <header class="poem__head">
@@ -37,8 +38,8 @@
       <div><dt>✅ Санасан үг</dt><dd>{{ result.alignment.correct }}/{{ result.alignment.total }}</dd></div>
     </dl>
     <div class="result__actions">
-      <button type="button" class="btn btn--coral" hx-get="/poems/{{ poem.id }}/recite" hx-target="#poem-stage" hx-swap="innerHTML">🔁 Дахин хэлэх</button>
-      <button type="button" class="btn btn--ghost" hx-get="/poems/{{ poem.id }}/practice?level=2" hx-target="#poem-stage" hx-swap="innerHTML">🙉 Дасгал хийх</button>
+      <button type="button" class="btn btn--coral" hx-get="/poems/{{ poem.id }}/recite{{ '?assignment=' ~ task.id if task }}" hx-target="#poem-stage" hx-swap="innerHTML">🔁 Дахин хэлэх</button>
+      <button type="button" class="btn btn--ghost" hx-get="/poems/{{ poem.id }}/practice?level=2{{ '&assignment=' ~ task.id if task }}" hx-target="#poem-stage" hx-swap="innerHTML">🙉 Дасгал хийх</button>
     </div>
   </aside>
 </div>

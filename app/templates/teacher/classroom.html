@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ classroom.name }} · oyuKids{% endblock %}
+{% block heading %}<a href="/teacher/classrooms" class="back">←</a> {{ classroom.emoji }} {{ classroom.name }}{% endblock %}
+
+{% block content %}
+{% set roster = scope.roster(classroom.id) %}
+{% set plist = scope.progress_list(classroom.id) %}
+<section class="class-hero card">
+  <span class="class-hero__emoji">{{ classroom.emoji }}</span>
+  <div class="class-hero__info">
+    <h1>{{ classroom.name }}</h1>
+    <p class="muted">{{ classroom.grade }}-р анги · {{ roster | length }} сурагч · {{ plist | length }} даалгавар</p>
+  </div>
+  <div class="join-code">
+    <small>Сурагчид энэ кодоор нэгдэнэ</small>
+    <button type="button" class="join-code__value" title="Хуулах"
+            onclick="navigator.clipboard?.writeText('{{ classroom.join_code }}'); this.dataset.copied = '1'; setTimeout(() => delete this.dataset.copied, 1500)">
+      {{ classroom.join_code }}
+    </button>
+  </div>
+</section>
+
+{% include "teacher/_class_panel.html" %}
+{% endblock %}

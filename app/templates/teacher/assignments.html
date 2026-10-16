@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "teacher/_macros.html" import progress_row, assignment_form with context %}
+{% block title %}Даалгавар · oyuKids{% endblock %}
+{% block heading %}📋 Даалгавар{% endblock %}
+
+{% block content %}
+<div class="split split--wide-left">
+  <section>
+    <div class="chips">
+      <a href="/teacher/assignments" class="chip-btn {{ 'is-active' if not selected }}">✨ Бүгд</a>
+      {% for c in scope.classrooms %}
+      <a href="/teacher/assignments?classroom={{ c.id }}" class="chip-btn {{ 'is-active' if selected == c.id }}">{{ c.emoji }} {{ c.name }}</a>
+      {% endfor %}
+    </div>
+    {% set open = progress | rejectattr("assignment.overdue") | list %}
+    {% set closed = progress | selectattr("assignment.overdue") | list %}
+    <section class="card">
+      <h2 class="section-title">⏰ Идэвхтэй ({{ open | length }})</h2>
+      {% if open %}<div class="prows">{% for p in open %}{{ progress_row(p) }}{% endfor %}</div>
+      {% else %}<p class="empty">Идэвхтэй даалгавар алга.</p>{% endif %}
+    </section>
+    {% if closed %}
+    <section class="card card--muted">
+      <h2 class="section-title">🗂️ Хугацаа дууссан ({{ closed | length }})</h2>
+      <div class="prows">{% for p in closed | reverse %}{{ progress_row(p) }}{% endfor %}</div>
+    </section>
+    {% endif %}
+  </section>
+
+  <aside class="card">
+    <h2>📋 Шинэ даалгавар</h2>
+    {% if error %}<p class="alert alert--bad">{{ error }}</p>{% endif %}
+    {% if scope.classrooms %}
+    {{ assignment_form("/teacher/assignments", classrooms=scope.classrooms) }}
+    {% else %}
+    <p class="empty">Эхлээд <a class="link" href="/teacher/classrooms">анги үүсгэнэ үү</a>.</p>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

@@ -1,17 +1,25 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 Activity = Literal["reading", "words", "poems"]
+Role = Literal["student", "teacher"]
+MemberStatus = Literal["invited", "active"]
 
 
 @dataclass
-class Kid:
+class User:
     id: int
+    role: Role
+    username: str
     name: str
     avatar: str
-    grade: int
+    grade: int | None = None  # students only
     streak_days: int = 0
+
+    @property
+    def is_teacher(self) -> bool:
+        return self.role == "teacher"
 
 
 @dataclass
@@ -51,18 +59,58 @@ class Poem:
 
 
 @dataclass
+class Classroom:
+    id: int
+    teacher_id: int
+    name: str
+    grade: int
+    emoji: str
+    join_code: str
+    created_at: datetime = field(default_factory=datetime.now)
+
+
+@dataclass
+class Membership:
+    classroom_id: int
+    student_id: int
+    status: MemberStatus
+    created_at: datetime = field(default_factory=datetime.now)
+
+
+@dataclass
+class Assignment:
+    id: int
+    classroom_id: int
+    activity: Activity
+    item_id: str  # passage id · poem id · words level key
+    title: str
+    due_date: date
+    instructions: str = ""
+    created_at: datetime = field(default_factory=datetime.now)
+
+    @property
+    def overdue(self) -> bool:
+        return self.due_date < date.today()
+
+    @property
+    def days_left(self) -> int:
+        return (self.due_date - date.today()).days
+
+
+@dataclass
 class WordRound:
     id: str
-    kid_id: int
+    student_id: int
     level: str
     words: list[str]
     display_seconds: int
+    assignment_id: int | None = None
     created_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
 class Attempt:
-    kid_id: int
+    student_id: int
     activity: Activity
     item_id: str
     item_title: str
@@ -72,12 +120,13 @@ class Attempt:
     stars: int  # 0..3
     wpm: float | None = None
     details: dict = field(default_factory=dict)
+    assignment_id: int | None = None
     id: int | None = None
     created_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
-class KidStats:
+class StudentStats:
     total_stars: int = 0
     attempts: int = 0
     best_wpm: float = 0
@@ -85,19 +134,20 @@ class KidStats:
     words_recalled: int = 0
     poems_mastered: int = 0
     activities_today: int = 0
+    last_active: datetime | None = None
 
     @classmethod
-    def from_attempts(cls, attempts: list[Attempt]) -> "KidStats":
+    def from_attempts(cls, attempts: list[Attempt]) -> "StudentStats":
         if not attempts:
             return cls()
         today = datetime.now().date()
-        reading = [a for a in attempts if a.activity == "reading"]
         return cls(
             total_stars=sum(a.stars for a in attempts),
             attempts=len(attempts),
-            best_wpm=max((a.wpm or 0 for a in reading), default=0),
+            best_wpm=max((a.wpm or 0 for a in attempts if a.activity == "reading"), default=0),
             avg_accuracy=sum(a.score for a in attempts) / len(attempts),
             words_recalled=sum(a.details.get("recalled", 0) for a in attempts if a.activity == "words"),
             poems_mastered=len({a.item_id for a in attempts if a.activity == "poems" and a.stars == 3}),
             activities_today=len({a.activity for a in attempts if a.created_at.date() == today}),
+            last_active=max(a.created_at for a in attempts),
         )

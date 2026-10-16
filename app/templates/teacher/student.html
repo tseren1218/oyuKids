@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import attempt_list, stars %}
+{% from "teacher/_macros.html" import score_badge %}
+{% set s = row.student %}
+{% block title %}{{ s.name }} · oyuKids{% endblock %}
+{% block heading %}<a href="/teacher/students" class="back">←</a> {{ s.avatar }} {{ s.name }}{% endblock %}
+
+{% block content %}
+<section class="stat-grid">
+  <div class="stat stat--sun"><span>⭐</span><b>{{ row.stats.total_stars }}</b><small>Нийт од</small></div>
+  <div class="stat stat--sky"><span>⚡</span><b>{{ row.stats.best_wpm | round | int }}</b><small>Шилдэг үг/мин</small></div>
+  <div class="stat stat--mint"><span>🎯</span><b>{{ row.stats.avg_accuracy | pct }}</b><small>Дундаж нарийвчлал</small></div>
+  <div class="stat stat--grape"><span>📋</span><b>{{ row.done }}/{{ row.total }}</b><small>Даалгавар</small></div>
+</section>
+
+<div class="split">
+  <section class="card">
+    <h2 class="section-title">📋 Даалгаврууд</h2>
+    {% if tasks %}
+    <ul class="feed">
+      {% for p, best in tasks %}
+      {% set a = p.assignment %}
+      <li>
+        <span class="tile tile--{{ activities[a.activity].color }}">{{ activities[a.activity].icon }}</span>
+        <a href="/teacher/assignments/{{ a.id }}" class="feed__body"><strong>{{ a.title }}</strong><small>{{ p.classroom.emoji }} {{ p.classroom.name }} · ⏰ {{ a.due_date | due }}</small></a>
+        {% if best %}{{ stars(best.stars, "sm") }}{{ score_badge(best) }}
+        {% elif a.overdue %}<span class="score score--late">Хийгээгүй</span>
+        {% else %}<span class="score score--none">⏳</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">Даалгавар алга.</p>
+    {% endif %}
+
+    {% if reading %}
+    <h2 class="section-title">📖 Уншлагын хурд</h2>
+    {% set top = (reading | map(attribute='wpm') | max) or 1 %}
+    <div class="bars bars--sm">
+      {% for a in reading %}
+      <div class="bars__col" title="{{ a.item_title }}">
+        <span class="bars__value">{{ a.wpm | round | int }}</span>
+        <span class="bars__bar" style="--h: {{ (a.wpm / top * 100) | round }}%; --i: {{ loop.index0 }}"></span>
+        <small>{{ a.created_at | mmdd }}</small>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2 class="section-title">🕒 Сүүлийн дасгалууд</h2>
+    {{ attempt_list(attempts) }}
+  </section>
+</div>
+{% endblock %}

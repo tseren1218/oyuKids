@@ -13,18 +13,21 @@
   <script src="/static/js/htmx.min.js"></script>
   <script src="/static/js/recorder.js" defer></script>
 </head>
-<body hx-boost="true">
+<body hx-boost="true" class="{{ 'role-teacher' if user and user.is_teacher else 'role-student' }}">
   <div class="backdrop" aria-hidden="true">
     <span class="blob blob--sun"></span>
     <span class="blob blob--sky"></span>
     <span class="blob blob--grape"></span>
   </div>
 
+  {% block body %}
+  {% set home = "/teacher" if user.is_teacher else "/" %}
   <div class="app">
     <aside class="sidebar">
-      <a href="/" class="brand">
+      <a href="{{ home }}" class="brand">
         {{ mascot(44) }}
         <span class="brand__name">oyu<b>Kids</b></span>
+        {% if user.is_teacher %}<span class="brand__tag">Багш</span>{% endif %}
       </a>
 
       <nav class="nav" aria-label="Үндсэн цэс">
@@ -36,6 +39,7 @@
         {% endfor %}
       </nav>
 
+      {% if more %}
       <div class="nav__heading">Удахгүй</div>
       <nav class="nav nav--more" aria-label="Бусад цэс">
         {% for item in more %}
@@ -46,15 +50,27 @@
         </a>
         {% endfor %}
       </nav>
+      {% endif %}
     </aside>
 
     <main class="main">
       <header class="topbar">
         <div class="topbar__title">{% block heading %}{% endblock %}</div>
         <div class="topbar__chips">
+          {% if stats %}
           <span class="chip chip--sun" title="Цуглуулсан од">⭐ <b id="star-count">{{ stats.total_stars }}</b></span>
-          <span class="chip chip--coral" title="Дараалсан өдөр">🔥 <b>{{ kid.streak_days }}</b> өдөр</span>
-          <span class="avatar" title="{{ kid.name }}">{{ kid.avatar }}</span>
+          <span class="chip chip--coral" title="Дараалсан өдөр">🔥 <b>{{ user.streak_days }}</b> өдөр</span>
+          {% endif %}
+          <details class="usermenu">
+            <summary class="avatar" title="{{ user.name }}">{{ user.avatar }}</summary>
+            <div class="usermenu__panel">
+              <strong>{{ user.name }}</strong>
+              <small>@{{ user.username }} · {{ "Багш" if user.is_teacher else "Сурагч" }}</small>
+              <form method="post" action="/logout" hx-boost="false">
+                <button type="submit" class="btn btn--ghost btn--sm">🚪 Гарах</button>
+              </form>
+            </div>
+          </details>
         </div>
       </header>
 
@@ -67,9 +83,10 @@
   <nav class="tabbar" aria-label="Цэс">
     {% for item in nav %}
     <a href="{{ item.href }}" class="tabbar__item tabbar__item--{{ item.color }} {{ 'is-active' if item.is_active(path) }}">
-      <span>{{ item.icon }}</span><small>{{ item.label.split(' ')[0] }}</small>
+      <span>{{ item.icon }}</span><small>{{ item.short or item.label }}</small>
     </a>
     {% endfor %}
   </nav>
+  {% endblock %}
 </body>
 </html>

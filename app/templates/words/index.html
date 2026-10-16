@@ -1,9 +1,10 @@
 {% extends "base.html" %}
-{% from "partials/_ui.html" import mascot %}
+{% from "partials/_ui.html" import mascot, task_banner %}
 {% block title %}Холбоо үг · oyuKids{% endblock %}
 {% block heading %}🧠 Холбоо үг цээжлэх{% endblock %}
 
 {% block content %}
+{{ task_banner(task) }}
 <div id="words-stage">
   <section class="intro intro--grape">
     <div>
@@ -14,9 +15,10 @@
   </section>
 
   <form class="card level-form" hx-post="/words/rounds" hx-target="#words-stage" hx-swap="innerHTML">
-    <h2 class="section-title">Түвшнээ сонго</h2>
+    {% if task %}<input type="hidden" name="assignment_id" value="{{ task.id }}">{% endif %}
+    <h2 class="section-title">{{ "Даалгаврын түвшин" if task else "Түвшнээ сонго" }}</h2>
     <div class="levels">
-      {% for lvl in levels %}
+      {% for lvl in levels if not task or lvl.key == selected %}
       <label class="level-card level-card--{{ loop.index }}">
         <input type="radio" name="level" value="{{ lvl.key }}" {{ 'checked' if lvl.key == selected }}>
         <span class="level-card__icon">{{ lvl.icon }}</span>

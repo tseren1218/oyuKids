@@ -9,14 +9,15 @@ class Settings(BaseSettings):
 
     app_name: str = "oyuKids"
     debug: bool = True
+    session_secret: str = "dev-only-change-me"
 
     db_backend: Literal["memory", "singlestore"] = "memory"
     singlestore_url: str | None = None
 
-    stt_provider: Literal["mock", "http"] = "mock"
-    stt_api_url: str | None = None
+    stt_provider: Literal["mock", "oyu"] = "mock"
     stt_api_key: str | None = None
-    stt_language: str = "mn-MN"
+    stt_model: str | None = None  # e.g. "v4"; omitted → oyu's default
+    oyu_api_url: str = "https://api.oyu.so"
 
 
 @lru_cache

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import progress_bar %}
+{% block title %}Сурагчид · oyuKids{% endblock %}
+{% block heading %}🧒 Сурагчид{% endblock %}
+
+{% block content %}
+{% set rows = scope.student_rows() %}
+<section class="card">
+  {% if rows %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Сурагч</th><th>Анги</th><th>Даалгавар</th><th>Дундаж</th><th>Шилдэг WPM</th><th>⭐</th><th>Сүүлд идэвхтэй</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr class="{{ 'is-invited' if r.status == 'invited' }}">
+          <td><a href="/teacher/students/{{ r.student.id }}" class="who"><span class="avatar avatar--sm">{{ r.student.avatar }}</span>
+            <span><strong>{{ r.student.name }}</strong><small>@{{ r.student.username }}</small></span></a></td>
+          <td>{% for c in r.classrooms %}<span class="pill">{{ c.emoji }} {{ c.name }}</span> {% endfor %}</td>
+          {% if r.status == "invited" %}
+          <td colspan="5"><span class="pill">✉️ Урилга хүлээгдэж байна</span></td>
+          {% else %}
+          <td>{{ progress_bar(r.done / r.total if r.total else 0) }} <small>{{ r.done }}/{{ r.total }}</small></td>
+          <td>{{ r.stats.avg_accuracy | pct if r.stats.attempts else "—" }}</td>
+          <td>{{ r.stats.best_wpm | round | int if r.stats.best_wpm else "—" }}</td>
+          <td>{{ r.stats.total_stars }}</td>
+          <td><small>{{ r.stats.last_active | shortdate if r.stats.last_active else "—" }}</small></td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">Сурагч алга. <a href="/teacher/classrooms" class="link">Ангиа нээгээд сурагчдаа урина уу →</a></p>
+  {% endif %}
+</section>
+{% endblock %}

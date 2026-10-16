@@ -2,7 +2,9 @@
 {% block title %}{{ poem.title }} · oyuKids{% endblock %}
 {% block heading %}<a href="/poems" class="back">←</a> {{ poem.emoji }} {{ poem.title }}{% endblock %}
 
+{% from "partials/_ui.html" import task_banner %}
 {% block content %}
+{{ task_banner(task) }}
 <div id="poem-stage">
   {% include "poems/_practice.html" %}
 </div>

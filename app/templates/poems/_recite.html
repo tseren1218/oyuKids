@@ -10,5 +10,5 @@
       <p class="muted">{{ poem.lines | length }} мөр. Эхний үг: <b>{{ poem.lines[0].split()[0] }}…</b></p>
     </div>
   </div>
-  {{ recorder("/poems/" ~ poem.id ~ "/attempts", "#poem-stage", demo_seconds=poem.word_count, prompt="Товчийг дараад шүлгээ уншаарай", color="coral") }}
+  {{ recorder("/poems/" ~ poem.id ~ "/attempts", "#poem-stage", demo_seconds=poem.word_count, prompt="Товчийг дараад шүлгээ уншаарай", color="coral", task=task) }}
 </section>

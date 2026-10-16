@@ -1,0 +1,76 @@
+{% from "partials/_ui.html" import progress_bar %}
+
+{# One assignment with its completion (AssignmentProgress). #}
+{% macro progress_row(p, show_class=True) -%}
+{% set a = p.assignment %}
+{% set meta = activities[a.activity] %}
+<a href="/teacher/assignments/{{ a.id }}" class="prow">
+  <span class="tile tile--{{ meta.color }}">{{ meta.icon }}</span>
+  <div class="prow__body">
+    <strong>{{ a.title }}</strong>
+    <small>{% if show_class %}{{ p.classroom.emoji }} {{ p.classroom.name }} · {% endif %}{{ meta.label }}</small>
+  </div>
+  <div class="prow__progress">
+    {{ progress_bar(p.pct, "mint" if p.pct >= 0.8 else "sun" if p.pct >= 0.4 else "coral") }}
+    <small><b>{{ p.completed }}/{{ p.roster | length }}</b> хийсэн{% if p.avg_score is not none %} · дундаж {{ p.avg_score | pct }}{% endif %}</small>
+  </div>
+  <span class="due {{ 'due--late' if a.overdue else 'due--soon' if a.days_left <= 1 }}">⏰ {{ a.due_date | due }}</span>
+</a>
+{%- endmacro %}
+
+{% macro score_badge(attempt) -%}
+{% if attempt %}
+<span class="score score--{{ 'good' if attempt.score >= 0.8 else 'mid' if attempt.score >= 0.5 else 'low' }}">{{ attempt.score | pct }}</span>
+{% else %}
+<span class="score score--none">—</span>
+{% endif %}
+{%- endmacro %}
+
+{#
+  Create-assignment form. `classrooms` given → shows a classroom picker (assignments page);
+  otherwise posts to `action` for a fixed classroom (classroom page).
+#}
+{% macro assignment_form(action, target=None, classrooms=None) -%}
+<form class="aform" method="post" action="{{ action }}"
+      {% if target %}hx-post="{{ action }}" hx-target="{{ target }}" hx-swap="outerHTML"{% endif %}>
+  {% if classrooms %}
+  <label class="field">
+    <span>Анги</span>
+    <select name="classroom_id" required>
+      {% for c in classrooms %}<option value="{{ c.id }}">{{ c.emoji }} {{ c.name }}</option>{% endfor %}
+    </select>
+  </label>
+  {% endif %}
+  <div class="field">
+    <span>Дасгалын төрөл</span>
+    <div class="seg">
+      {% for key, meta in activity_choices.items() %}
+      <label class="seg__opt seg__opt--{{ meta.color }}">
+        <input type="radio" name="activity" value="{{ key }}" {{ 'checked' if key == form_activity }}
+               hx-get="/teacher/assignment-items" hx-target="next .item-select" hx-trigger="change" hx-swap="innerHTML">
+        <span>{{ meta.icon }} {{ meta.label }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+  <label class="field">
+    <span>Агуулга</span>
+    <select name="item_id" class="item-select" required>{% include "teacher/_item_options.html" %}</select>
+  </label>
+  <label class="field">
+    <span>Гарчиг <em>(хоосон бол автоматаар)</em></span>
+    <input name="title" maxlength="120" placeholder="жишээ нь: Долоо хоногийн уншлага">
+  </label>
+  <div class="field-row">
+    <label class="field">
+      <span>Дуусах огноо</span>
+      <input type="date" name="due_date" value="{{ default_due }}" min="{{ today().isoformat() }}" required>
+    </label>
+  </div>
+  <label class="field">
+    <span>Заавар <em>(заавал биш)</em></span>
+    <textarea name="instructions" rows="2" maxlength="500" placeholder="Сурагчдад хэлэх үг…"></textarea>
+  </label>
+  <button class="btn btn--coral btn--block" type="submit">📋 Даалгавар өгөх</button>
+</form>
+{%- endmacro %}

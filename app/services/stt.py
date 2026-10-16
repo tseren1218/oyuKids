@@ -9,6 +9,7 @@ import random
 from dataclasses import dataclass
 from typing import Protocol
 
+import httpx
 from fastapi import UploadFile
 
 from app.config import Settings
@@ -63,24 +64,55 @@ class MockSTT:
         return Transcript(text=" ".join(words), provider="mock", confidence=0.9)
 
 
-class HttpSTT:
-    """Placeholder for the real STT API (credentials come via OYU_STT_* env vars)."""
+class STTError(RuntimeError):
+    pass
 
-    def __init__(self, url: str | None, api_key: str | None, language: str):
-        self.url, self.api_key, self.language = url, api_key, language
+
+_EXTENSIONS = {"audio/wav": "wav", "audio/x-wav": "wav", "audio/mpeg": "mp3", "audio/ogg": "ogg", "audio/webm": "webm", "audio/mp4": "m4a"}
+
+
+class OyuSTT:
+    """Anir — oyu's Mongolian STT (https://dev.oyu.so). POST multipart `file` → {"text", "duration_s"}.
+
+    Accepts wav/mp3/m4a/webm/ogg, so browser recordings go up as-is. `model` is sent if set but the
+    API currently ignores it (always "auto").
+    """
+
+    def __init__(self, base_url: str, api_key: str | None, model: str | None = None, timeout: float = 60):
+        if not api_key:
+            raise STTError("OYU_STT_API_KEY is not set")
+        self.url = base_url.rstrip("/") + "/v1/audio/transcriptions"
+        self.api_key, self.model, self.timeout = api_key, model, timeout
 
     async def transcribe(self, audio: bytes, mime_type: str, *, hint: str | None = None) -> Transcript:
-        # TODO: POST `audio` to self.url (httpx.AsyncClient) and map the response to Transcript.
-        raise NotImplementedError("Real STT provider is not wired up yet — set OYU_STT_PROVIDER=mock")
+        if not audio:
+            return Transcript(text="", provider="oyu")
+        base_mime = mime_type.split(";")[0].strip()
+        files = {"file": (f"audio.{_EXTENSIONS.get(base_mime, 'bin')}", audio, base_mime)}
+        data = {"model": self.model} if self.model else {}
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                res = await client.post(self.url, headers={"Authorization": f"Bearer {self.api_key}"}, files=files, data=data)
+        except httpx.HTTPError as exc:
+            raise STTError(f"oyu STT unreachable: {exc!r}") from exc
+        if res.status_code != 200:
+            raise STTError(f"oyu STT {res.status_code}: {res.text[:300]}")
+        body = res.json()
+        return Transcript(text=body.get("text", "").strip(), provider="oyu", duration_seconds=body.get("duration_s"))
 
 
 def build_stt(settings: Settings) -> STTProvider:
-    if settings.stt_provider == "http":
-        return HttpSTT(settings.stt_api_url, settings.stt_api_key, settings.stt_language)
+    if settings.stt_provider == "oyu":
+        return OyuSTT(settings.oyu_api_url, settings.stt_api_key, settings.stt_model)
     return MockSTT()
+
+
+_demo_stt = MockSTT()
 
 
 async def transcribe_upload(stt: STTProvider, upload: UploadFile | None, *, hint: str | None = None) -> Transcript:
     audio = await upload.read() if upload else b""
     mime_type = (upload.content_type if upload else None) or "audio/webm"
+    if not audio:  # the no-mic "demo" button posts an empty clip — always simulate it
+        stt = _demo_stt
     return await stt.transcribe(audio, mime_type, hint=hint)

@@ -1,8 +1,9 @@
-{% from "partials/_ui.html" import stars, confetti, mascot, star_count_oob %}
+{% from "partials/_ui.html" import stars, confetti, mascot, star_count_oob, task_done %}
 {{ star_count_oob(stats.total_stars) }}
 {% set band_label, band_icon = result.band %}
 {% if result.stars == 3 %}{{ confetti() }}{% endif %}
 
+{% if task %}<div class="stage__full">{{ task_done(task) }}</div>{% endif %}
 <article class="card passage passage--result">
   <div class="passage__meta">
     <span class="badge badge--sky">Үр дүн</span>
@@ -43,7 +44,7 @@
   </dl>
 
   <div class="result__actions">
-    <a href="/reading/{{ passage.id }}" class="btn btn--sky">🔁 Дахин унших</a>
+    <a href="/reading/{{ passage.id }}{{ '?assignment=' ~ task.id if task }}" class="btn btn--sky">🔁 Дахин унших</a>
     <a href="/reading" class="btn btn--ghost">Өөр эх сонгох</a>
   </div>
 </aside>

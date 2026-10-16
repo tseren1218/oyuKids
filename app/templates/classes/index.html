@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "partials/_ui.html" import mascot, task_list %}
+{% block title %}Миний анги · oyuKids{% endblock %}
+{% block heading %}🏫 Миний анги{% endblock %}
+
+{% block content %}
+{% if message %}<p class="alert alert--ok">{{ message }}</p>{% endif %}
+{% if error %}<p class="alert alert--bad">{{ error }}</p>{% endif %}
+
+{% for c in scope.invitations %}
+<div class="invite-banner">
+  <span class="invite-banner__emoji">{{ c.emoji }}</span>
+  <div><strong>{{ scope.teacher_of[c.id].name }} таныг «{{ c.name }}» ангид урьж байна!</strong><small>{{ c.grade }}-р анги</small></div>
+  <form method="post" action="/classes/{{ c.id }}/accept"><button class="btn btn--mint btn--sm">Нэгдэх ✅</button></form>
+  <form method="post" action="/classes/{{ c.id }}/decline"><button class="btn btn--ghost btn--sm">Татгалзах</button></form>
+</div>
+{% endfor %}
+
+<div class="split split--wide-left">
+  <section>
+    {% if scope.classrooms %}
+    <div class="class-grid">
+      {% for c in scope.classrooms %}
+      {% set tasks = scope.tasks | selectattr("classroom.id", "equalto", c.id) | list %}
+      {% set done = tasks | selectattr("done") | list | length %}
+      <article class="class-card">
+        <span class="class-card__emoji">{{ c.emoji }}</span>
+        <div>
+          <h3>{{ c.name }}</h3>
+          <small>{{ scope.teacher_of[c.id].avatar }} {{ scope.teacher_of[c.id].name }}</small>
+        </div>
+        <div class="class-card__stat"><b>{{ done }}/{{ tasks | length }}</b><small>даалгавар</small></div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <h2 class="section-title">📋 Хийх даалгавар</h2>
+    {% if scope.pending %}{{ task_list(scope.pending) }}{% else %}<p class="empty card">🎉 Бүх даалгавраа хийчихжээ!</p>{% endif %}
+
+    {% if scope.completed %}
+    <h2 class="section-title">✅ Хийсэн даалгавар</h2>
+    {{ task_list(scope.completed) }}
+    {% endif %}
+    {% else %}
+    <section class="card empty-state">
+      {{ mascot(120, "bob") }}
+      <h2>Чи одоохондоо ангид нэгдээгүй байна</h2>
+      <p class="muted">Багшаасаа ангийн кодыг аваад баруун талд оруулаарай.</p>
+    </section>
+    {% endif %}
+  </section>
+
+  <aside class="card join-card">
+    <h2>🔑 Ангид нэгдэх</h2>
+    <p class="muted">Багшийн өгсөн 6 тэмдэгттэй кодыг оруулаарай.</p>
+    <form method="post" action="/classes/join" class="join-form">
+      <input name="code" class="code-input" maxlength="6" placeholder="ABC123" autocomplete="off" required
+             oninput="this.value = this.value.toUpperCase()">
+      <button class="btn btn--sun btn--block" type="submit">Нэгдэх 🚀</button>
+    </form>
+  </aside>
+</div>
+{% endblock %}

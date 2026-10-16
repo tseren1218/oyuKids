@@ -2,12 +2,12 @@
 <nav class="tabs" aria-label="Дасгалын горим">
   {% for l in levels %}
   <button type="button" class="tab {{ 'is-active' if active == l.level }}"
-          hx-get="/poems/{{ poem.id }}/practice?level={{ l.level }}" hx-target="#poem-stage" hx-swap="innerHTML">
+          hx-get="/poems/{{ poem.id }}/practice?level={{ l.level }}{{ '&assignment=' ~ task.id if task }}" hx-target="#poem-stage" hx-swap="innerHTML">
     {{ l.icon }} {{ l.label }}
   </button>
   {% endfor %}
   <button type="button" class="tab tab--cta {{ 'is-active' if active == 'recite' }}"
-          hx-get="/poems/{{ poem.id }}/recite" hx-target="#poem-stage" hx-swap="innerHTML">
+          hx-get="/poems/{{ poem.id }}/recite{{ '?assignment=' ~ task.id if task }}" hx-target="#poem-stage" hx-swap="innerHTML">
     🎤 Цээжээр хэлэх
   </button>
 </nav>

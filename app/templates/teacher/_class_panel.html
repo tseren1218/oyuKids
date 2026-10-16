@@ -1,0 +1,127 @@
+{% from "partials/_ui.html" import progress_bar %}
+{% from "teacher/_macros.html" import progress_row, score_badge, assignment_form with context %}
+<div id="class-panel">
+  <nav class="tabs" aria-label="Ангийн хэсгүүд">
+    {% for key, label in tabs %}
+    <button type="button" class="tab {{ 'is-active' if tab == key }}"
+            hx-get="/teacher/classrooms/{{ classroom.id }}?tab={{ key }}" hx-target="#class-panel" hx-swap="outerHTML" hx-push-url="true">{{ label }}</button>
+    {% endfor %}
+  </nav>
+
+  {% if message %}<p class="alert alert--ok">{{ message }}</p>{% endif %}
+  {% if error %}<p class="alert alert--bad">{{ error }}</p>{% endif %}
+
+  {% if tab == "students" %}
+  <div class="split split--wide-left">
+    <section class="card">
+      <h2 class="section-title">Сурагчид</h2>
+      {% set rows = scope.student_rows(classroom.id) %}
+      {% if rows %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Сурагч</th><th>Даалгавар</th><th>Дундаж</th><th>Шилдэг WPM</th><th>⭐</th><th>Сүүлд</th><th></th></tr></thead>
+          <tbody>
+            {% for r in rows %}
+            <tr class="{{ 'is-invited' if r.status == 'invited' }}">
+              <td><a href="/teacher/students/{{ r.student.id }}" class="who"><span class="avatar avatar--sm">{{ r.student.avatar }}</span>
+                <span><strong>{{ r.student.name }}</strong><small>@{{ r.student.username }}</small></span></a></td>
+              {% if r.status == "invited" %}
+              <td colspan="5"><span class="pill">✉️ Урилга хүлээгдэж байна</span></td>
+              {% else %}
+              <td>{{ progress_bar(r.done / r.total if r.total else 0) }} <small>{{ r.done }}/{{ r.total }}</small></td>
+              <td>{{ r.stats.avg_accuracy | pct if r.stats.attempts else "—" }}</td>
+              <td>{{ r.stats.best_wpm | round | int if r.stats.best_wpm else "—" }}</td>
+              <td>{{ r.stats.total_stars }}</td>
+              <td><small>{{ r.stats.last_active | shortdate if r.stats.last_active else "—" }}</small></td>
+              {% endif %}
+              <td>
+                <button type="button" class="icon-btn" title="Ангиас хасах"
+                        hx-post="/teacher/classrooms/{{ classroom.id }}/students/{{ r.student.id }}/remove" hx-target="#class-panel" hx-swap="outerHTML"
+                        hx-confirm="{{ r.student.name }}-г ангиас хасах уу?">✕</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="empty">Сурагч алга. Урилга илгээх эсвэл нэгдэх кодоо хуваалцаарай.</p>
+      {% endif %}
+    </section>
+
+    <aside class="card">
+      <h2>✉️ Сурагч урих</h2>
+      <p class="muted">Нэвтрэх нэрээр нь урина. Сурагч нүүр хуудсандаа урилгаа хүлээж авна.</p>
+      <form class="aform" hx-post="/teacher/classrooms/{{ classroom.id }}/invite" hx-target="#class-panel" hx-swap="outerHTML">
+        <label class="field"><span>Сурагчийн нэвтрэх нэр</span>
+          <input name="username" list="invitable" placeholder="жишээ нь: ganzorig" autocomplete="off" required>
+        </label>
+        <datalist id="invitable">{% for s in invitable %}<option value="{{ s.username }}">{{ s.name }}</option>{% endfor %}</datalist>
+        <button class="btn btn--grape btn--block" type="submit">Урилга илгээх</button>
+      </form>
+      {% if invitable %}
+      <div class="quick-invite">
+        <small class="muted">Түргэн урих:</small>
+        {% for s in invitable[:6] %}
+        <button type="button" class="demo-chip" hx-post="/teacher/classrooms/{{ classroom.id }}/invite" hx-vals='{"username": "{{ s.username }}"}'
+                hx-target="#class-panel" hx-swap="outerHTML"><span>{{ s.avatar }}</span>{{ s.name }}</button>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <hr class="divider">
+      <p class="muted">Эсвэл энэ кодыг сурагчдад өгөөрэй: <code class="code-chip">{{ classroom.join_code }}</code></p>
+    </aside>
+  </div>
+
+  {% elif tab == "assignments" %}
+  <div class="split split--wide-left">
+    <section class="card">
+      <h2 class="section-title">Даалгаврууд</h2>
+      {% set plist = scope.progress_list(classroom.id) %}
+      {% if plist %}
+      <div class="prows">{% for p in plist | reverse %}{{ progress_row(p, show_class=False) }}{% endfor %}</div>
+      {% else %}
+      <p class="empty">Даалгавар алга. Баруун талаас анхны даалгавраа өгөөрэй →</p>
+      {% endif %}
+    </section>
+    <aside class="card">
+      <h2>📋 Шинэ даалгавар</h2>
+      {{ assignment_form("/teacher/classrooms/" ~ classroom.id ~ "/assignments", target="#class-panel") }}
+    </aside>
+  </div>
+
+  {% else %}
+  <section class="card">
+    <h2 class="section-title">Үр дүнгийн хүснэгт</h2>
+    {% set assignments = scope.progress_list(classroom.id) | map(attribute="assignment") | list %}
+    {% set matrix = scope.results_matrix(classroom.id) %}
+    {% if assignments and matrix %}
+    <div class="table-wrap">
+      <table class="table table--matrix">
+        <thead>
+          <tr>
+            <th>Сурагч</th>
+            {% for a in assignments %}
+            <th><a href="/teacher/assignments/{{ a.id }}" title="{{ a.title }}">{{ activities[a.activity].icon }} {{ a.title | truncate(18, True, "…") }}</a><small>{{ a.due_date | mmdd }}</small></th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for student, cells in matrix %}
+          <tr>
+            <td><a href="/teacher/students/{{ student.id }}" class="who"><span class="avatar avatar--sm">{{ student.avatar }}</span><strong>{{ student.name }}</strong></a></td>
+            {% for cell in cells %}
+            <td class="center">{% if cell %}{{ score_badge(cell) }}{% elif assignments[loop.index0].overdue %}<span class="score score--late">!</span>{% else %}<span class="score score--none">⏳</span>{% endif %}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="legend-row"><span class="score score--good">80%+</span><span class="score score--mid">50–79%</span><span class="score score--low">&lt;50%</span><span class="score score--none">⏳</span> хийгээгүй <span class="score score--late">!</span> хугацаа хэтэрсэн</p>
+    {% else %}
+    <p class="empty">Сурагч эсвэл даалгавар нэмэгдэхээр үр дүн энд харагдана.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
